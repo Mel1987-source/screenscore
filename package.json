@@ -1,0 +1,14 @@
+{
+  "name": "screenscore",
+  "version": "33.0.0",
+  "private": true,
+  "description": "Personal movie & series discovery ranked by IMDb rating",
+  "type": "module",
+  "scripts": {
+    "test": "node unit.mjs && node e2e.mjs",
+    "build-data": "node build-imdb-data.mjs data"
+  },
+  "devDependencies": {
+    "playwright": "^1.48.0"
+  }
+}
