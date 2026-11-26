@@ -2,7 +2,11 @@
 <html lang="el">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <script>
+    // Text size is applied before the page draws, so it never flashes at the wrong size.
+    try { document.documentElement.dataset.text = localStorage.getItem("screenscore_text_size") || "normal"; } catch (e) {}
+  </script>
   <meta name="theme-color" content="#101522">
   <meta name="description" content="ScreenScore — ανακάλυψε τις καλύτερες ταινίες και σειρές με βάση τη βαθμολογία IMDb.">
   <link rel="manifest" href="manifest.webmanifest">
@@ -164,6 +168,15 @@
       <p class="help">Watchlist και προφίλ συγχρονίζονται μέσω του δικού σου Worker. Βάλε τον ίδιο κωδικό σε κάθε συσκευή.</p>
       <div class="tool-actions"><button type="button" id="syncNowBtn" class="secondary-button">Συγχρονισμός τώρα</button></div>
       <p class="help" id="syncStatus" role="status"></p>
+      </fieldset>
+
+      <fieldset class="settings-group"><legend>Μέγεθος γραμμάτων</legend>
+      <div class="segmented" role="radiogroup" aria-label="Μέγεθος γραμμάτων">
+        <label><input type="radio" name="textSize" value="small"><span style="font-size:12px">Μικρά</span></label>
+        <label><input type="radio" name="textSize" value="normal"><span style="font-size:14px">Κανονικά</span></label>
+        <label><input type="radio" name="textSize" value="large"><span style="font-size:16px">Μεγάλα</span></label>
+      </div>
+      <p class="help">Αλλάζει αμέσως, σε όλη την εφαρμογή.</p>
       </fieldset>
 
       <fieldset class="settings-group"><legend>Λίστες</legend>

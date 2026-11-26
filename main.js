@@ -182,6 +182,18 @@ try {
   ["screenscore_platforms", "screenscore_trakt_cache", "screenscore_trakt_client_id", "screenscore_omdb_cache", "screenscore_omdb_daily", "screenscore_omdb_key", "screenscore_omdb_via_proxy"].forEach((k) => localStorage.removeItem(k));
 } catch (e) {}
 
+// Text size (small / normal / large): applied immediately and remembered on this device.
+function applyTextSize(size) {
+  document.documentElement.dataset.text = size;
+  try {
+    localStorage.setItem("screenscore_text_size", size);
+  } catch (e) {}
+}
+document.querySelectorAll('input[name="textSize"]').forEach((r) => {
+  r.checked = r.value === (document.documentElement.dataset.text || "normal");
+  r.addEventListener("change", () => applyTextSize(r.value));
+});
+
 // Start-up runs last, after every function and listener above is defined.
 async function start() {
   initRouter();
