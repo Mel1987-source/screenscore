@@ -77,3 +77,7 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}
 .svc-netflix{background:#e50914;color:#fff}
 .svc-cinobo{background:#f4f0e6;color:#111;border-color:#d8d2c2}
 .service-row{grid-template-columns:auto 1fr}
+/* v34: film-reel logo in the header; Cinobo in its orange */
+.brand-mark{background:#fff!important;padding:0;overflow:hidden;box-shadow:0 0 24px #d6a34a22}
+.brand-mark img{width:100%;height:100%;object-fit:contain;display:block}
+.svc-cinobo{background:#f26b21;color:#fff;border-color:#f26b21}

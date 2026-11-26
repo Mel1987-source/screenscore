@@ -1,7 +1,7 @@
 {
   "name": "ScreenScore — Cinema",
   "short_name": "ScreenScore",
-  "version": "33.0.0",
+  "version": "34.0.0",
   "description": "Movie and series discovery ranked by IMDb rating.",
   "start_url": "./",
   "display": "standalone",
