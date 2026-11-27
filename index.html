@@ -1,229 +1,1740 @@
 <!doctype html>
 <html lang="el">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <script>
-    // Text size is applied before the page draws, so it never flashes at the wrong size.
-    try { document.documentElement.dataset.text = localStorage.getItem("screenscore_text_size") || "normal"; } catch (e) {}
-  </script>
-  <meta name="theme-color" content="#101522">
-  <meta name="description" content="ScreenScore — ανακάλυψε τις καλύτερες ταινίες και σειρές με βάση τη βαθμολογία IMDb.">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="cinema-icon-180.png">
-  <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
-  <link rel="stylesheet" href="styles.css">
-  <title>ScreenScore</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Καιρός</title>
+<meta name="description" content="Καιρός με πρόγνωση, ραντάρ, ποιότητα αέρα και ειδοποιήσεις">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#091427">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Καιρός">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{
+  --top:#091427; --bottom:#071224; --ink:#fff; --soft:rgba(255,255,255,0.88);
+  --panel:linear-gradient(180deg,rgba(25,48,78,.82),rgba(18,36,61,.82)); --line:rgba(140,170,210,.18); --edge:rgba(120,160,210,.16);
+  font-family:"Avenir Next","Segoe UI Variable","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+.temp,.stat b,.h b,.d,.h small{font-variant-numeric:tabular-nums}
+html,body{min-height:100%}
+body{
+  color:var(--ink);background:transparent;
+  transition:background .6s;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+}
+main{max-width:520px;margin:0 auto;padding:16px 18px 32px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+header .place{min-width:0;flex:0 1 auto;display:flex;align-items:center;gap:6px;text-align:left}#placeName{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}header>span{flex:none;gap:6px!important}@media (max-width:380px){header .place{font-size:1rem}header .icon-btn{width:40px;height:40px}header{gap:8px}}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid #fff;outline-offset:3px;border-radius:8px}
+.place{font-size:1.1rem;font-weight:600;display:flex;gap:8px;align-items:center;padding:8px 0}
+.icon-btn{width:44px;height:44px;border-radius:50%;background:var(--panel);font-size:1.2rem}
+.opt{display:flex;align-items:center;padding:9px 0}.opt input{width:auto;margin:0 10px 0 0}.thr{margin:-2px 0 6px 30px;color:#9aa7bb;font-size:.9rem}.thr input{width:4.2rem;display:inline-block;margin:0 4px;padding:6px 8px}.pill{background:#2d6bd6;border-radius:12px;padding:11px 16px;margin:12px 8px 0 0}.pill.alt{background:#2b3648}.icon-btn.spin{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hero{padding:28px 0 20px;position:relative}
+.upd{position:absolute;top:6px;right:0;font-size:.72rem;color:#fff;opacity:.92;font-variant-numeric:tabular-nums}
+.temp{font-size:clamp(6rem,30vw,9rem);font-weight:400;line-height:.95;letter-spacing:-.04em;margin-left:-.04em}
+.temp sup{font-size:.35em;font-weight:400;vertical-align:top;position:relative;top:.25em;letter-spacing:0}
+.cond{font-size:1.5rem;font-weight:500;margin-top:8px;display:flex;align-items:center;gap:10px}
+.ic{display:block;flex:none}.h .e{display:flex;justify-content:center}
+.sub{color:var(--soft);margin-top:4px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 22px}
+.stat{background:var(--panel);border-radius:16px;padding:14px}
+.stat b{display:block;font-size:1.35rem;font-weight:600}
+.stat span{color:var(--soft);font-size:.85rem}
+h2{font-size:.95rem;font-weight:600;color:var(--soft);margin:0 0 10px}
+.hours{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin:0 -18px 18px;padding-left:18px;padding-right:18px;scrollbar-width:none}
+.hours::-webkit-scrollbar{display:none}
+.h{flex:0 0 auto;min-width:58px;text-align:center;background:var(--panel);border-radius:14px;padding:10px 6px}
+.h small{display:block;color:var(--soft)}
+.h .e{display:block;font-size:1.4rem;margin:6px 0 4px}
+.h .p{display:block;font-size:.75rem;color:var(--soft);min-height:1em}
+.days{background:var(--panel);border-radius:16px;padding:4px 14px}
+.d{display:grid;grid-template-columns:4.6rem 1.8rem 2.6rem 1fr 2.6rem .9rem;gap:8px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);width:100%;text-align:left}
+.d .chev{opacity:.6;font-size:.8rem;text-align:right}
+.dd{padding:10px 0 12px;border-bottom:1px solid var(--line)}.ddsum{font-size:.9rem;line-height:1.5;margin-bottom:10px}
+.ddh{margin:0 -14px;padding-left:14px;padding-right:14px}.ddh .h{background:rgba(255,255,255,.1)}
+.h .x{display:block;font-size:.72rem;color:var(--soft);min-height:1em;white-space:nowrap}
+.d:last-child{border:0}
+.d .n{font-weight:600}
+.d .lo{color:var(--soft);text-align:right}
+.d .hi{text-align:right}
+.d .pp{font-size:.8rem;color:var(--soft)}
+.bar{height:5px;border-radius:3px;background:var(--line);position:relative}
+.bar i{position:absolute;top:0;bottom:0;border-radius:3px;background:#fff}
+.foot{margin-top:22px;font-size:.8rem;color:var(--soft);line-height:1.5}
+.msg{background:var(--panel);border-radius:16px;padding:16px;margin:24px 0}
+.msg.lv3{background:rgba(220,38,38,.38)}.msg.lv2{background:rgba(249,115,22,.34)}
+select{font:inherit;padding:7px 8px;border-radius:10px;background:#0f1622;color:#fff;border:1px solid #3a475c}
+.msg.alert{background:rgba(255,176,32,.28);margin:10px 0}.msg.err{background:rgba(120,0,0,.35)}
+.panel{background:var(--panel);border-radius:16px;padding:14px;margin-bottom:18px;line-height:1.55}
+.panel svg{width:100%;height:auto;display:block}
+.ap{padding:2px 0 12px}.ap+.ap{border-top:1px solid var(--line);padding-top:12px}.aph{font-size:1.05rem;margin-bottom:2px}.apm{display:flex;align-items:baseline;gap:10px;margin:4px 0;flex-wrap:wrap}.apt{font-size:1.7rem;font-weight:400;letter-spacing:-.03em}.tafh{margin:10px 0 2px;font-weight:600;font-size:.92rem}.tg{margin:6px 0;padding:7px 10px;border-radius:10px;background:rgba(255,255,255,.04);font-size:.92rem}.tg.hz{background:rgba(255,170,60,.12);border-left:3px solid #ffb347}details.raw{margin-top:8px}details.raw summary{cursor:pointer;color:#9aa7bb;font-size:.85rem}details.raw code{display:block;white-space:pre-wrap;word-break:break-word;font-size:.76rem;color:#c9d4e5;margin-top:6px}
+.panel svg.moon{width:64px;height:64px}
+#map{height:300px;border-radius:16px;overflow:hidden;background:#1b2433}
+.rc{display:flex;gap:10px;align-items:center;margin:8px 0 18px}
+.rc input{width:auto;flex:1;margin:0;padding:0;border:0;background:none}
+.rc button{width:40px;height:40px;border-radius:50%;background:var(--panel)}
+.fav{display:flex;align-items:center;border-bottom:1px solid #2b3648}
+.fav .n{text-align:left;padding:12px 6px;flex:1}
+.brief{margin-top:14px;padding:12px 14px;border-radius:14px;background:var(--panel);font-size:.98rem;line-height:1.45}
+html{background:var(--bottom)}
+body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:
+  radial-gradient(ellipse 70% 30% at 85% 30%,rgba(28,74,118,.6),rgba(28,74,118,0) 70%),
+  radial-gradient(ellipse 65% 30% at 85% 64%,rgba(20,56,92,.9),rgba(20,56,92,0) 70%),
+  linear-gradient(180deg,var(--top),var(--bottom) 30%,var(--bottom))}
+.panel,.stat,.h,.days,.brief,.msg:not(.err):not(.alert):not(.lv1):not(.lv2):not(.lv3),.icon-btn{border:1px solid var(--edge)}
+body{overscroll-behavior-y:contain}
+*{touch-action:manipulation}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+#nmsg{white-space:pre-line}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+main{position:relative;z-index:1}
+#splash{position:fixed;inset:0;z-index:100;background:#191932;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .4s}
+#splash.off{opacity:0;pointer-events:none}
+#splash img{width:104px;height:104px;border-radius:23px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+#splash b{font-weight:500;letter-spacing:.05em;color:#cfd6ff}
+#ptr{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:50%;transform:translate(-50%,-160px);opacity:0;visibility:hidden;background:rgba(0,0,0,.5);border-radius:20px;padding:8px 14px;font-size:.85rem;z-index:50;transition:transform .15s,opacity .15s}#ptr.on{opacity:1;visibility:visible}
+.u{display:grid;grid-template-columns:4.6rem 1fr 1fr 4.6rem;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.u:last-child{border:0}
+.srow{display:flex;justify-content:space-between;align-items:center;padding:12px 0}
+.fv{display:grid;grid-template-columns:1fr 1.6rem 2.6rem 5rem;gap:8px;align-items:center;width:100%;text-align:left;padding:10px 0;border-bottom:1px solid var(--line)}
+.fv:last-child{border:0}
+.msg.lv1{background:#f6d04d;color:#1b1b1b}.msg.lv2{background:#f59e42;color:#1b1b1b}.msg.lv3{background:#d63b3b;color:#fff}
+.stat em{display:block;font-style:normal;font-size:.82rem;color:var(--soft);margin-top:6px;line-height:1.35}
+.h .p{display:flex;align-items:center;justify-content:center;gap:2px}
+.h .p.hi{color:#8fd0ff;font-weight:600}
+.h .p.z{opacity:.5}
+.skip{position:absolute;left:-999px;top:0;background:#fff;color:#000;padding:10px 14px;z-index:200;border-radius:0 0 10px 0}.skip:focus{left:0}
+.ab p{font-size:.9rem;line-height:1.5;margin:6px 0}.ab b{display:block;margin-top:12px}.ab a{color:#9cc4ff}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.chip{padding:6px 12px;border-radius:16px;background:rgba(255,255,255,.14);font-size:.85rem}.chip.on{background:#2d6bd6}
+.ot{padding:8px 0;border-bottom:1px solid var(--line);line-height:1.45;font-size:.92rem}.ot:last-of-type{border:0}
+#upb{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:60;background:#2d6bd6;border-radius:14px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+#upb[hidden]{display:none}
+#upb button{background:#fff;color:#1f4fa8;border-radius:10px;padding:8px 14px;font-weight:600}
+.sec>h2{cursor:pointer}.sec>h2::after{content:' ▾';opacity:.55}.sec.fixed>h2{cursor:default}.sec.fixed>h2::after{content:''}.sec.col>h2::after{content:' ▸'}.sec.col>:not(h2){display:none}.sec.hide{display:none}
+.ldrow{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #2b3648;gap:10px}.ldrow label{flex:1}.ldrow input{width:auto;margin:0 8px 0 0}.ldb{width:36px;height:36px;border-radius:10px;background:#2b3648;margin-left:6px}.ldb:disabled{opacity:.35}
+.thr input[type=time]{width:6.4rem;display:inline-block}
+#fb{margin:16px 0}
+dialog{border:0;border-radius:20px;padding:18px;width:min(92vw,440px);background:#10213a;color:#fff;margin:8vh auto 0;border:1px solid var(--edge);max-height:84vh;overflow:auto}
+.bellb{position:relative;display:inline-flex;align-items:center;justify-content:center}#bellN{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#ff5a5a;color:#fff;font-size:.7rem;font-weight:700;line-height:18px;text-align:center}
+.ibox{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);margin:6px 0;cursor:pointer;border:1px solid transparent}.ibox.unread{border-color:#4a8cff}.ibox.sel{background:rgba(74,140,255,.14);border-color:#4a8cff;cursor:default}.ibox b{display:block;margin:2px 0}.ibody{white-space:pre-line;font-size:.92rem;color:#d7e0ee}.ibody.clip{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+input{width:100%;font:inherit;padding:12px 14px;border-radius:12px;border:1px solid #3a475c;background:#0f1622;color:#fff;margin:10px 0}
+.res{display:block;width:100%;text-align:left;padding:12px 6px;border-bottom:1px solid #2b3648}
+.res small{color:#9aa7bb}
+.row{display:flex;gap:10px;justify-content:space-between}
+.link{color:#9cc4ff;padding:8px 0}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
 </head>
 <body>
-  <svg xmlns="http://www.w3.org/2000/svg" style="display:none"><symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></symbol><symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-9-9a4.7 4.7 0 0 1 9-3 4.7 4.7 0 0 1 9 3c-2 4.6-9 9-9 9z"/></symbol><symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></symbol><symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></symbol><symbol id="i-sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16v4M17 18h4"/></symbol><symbol id="i-gem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18M9.5 4 12 20l2.5-16"/></symbol><symbol id="i-film" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 5v14M17 5v14M3 12h18"/></symbol><symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18h10a4 4 0 0 0 .5-8 6 6 0 0 0-11.4 1.5A3.3 3.3 0 0 0 7 18z"/></symbol><symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol><symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></symbol><symbol id="i-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></symbol><symbol id="i-trophy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8"/></symbol><symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol><symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M3 20h18"/></symbol><symbol id="i-compare" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M17 4v16M4 8l3-4 3 4M14 16l3 4 3-4"/></symbol><symbol id="i-sigma" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 4H6l6 8-6 8h11"/></symbol><symbol id="i-profile" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.5 18a6 6 0 0 1 11 0"/></symbol><symbol id="i-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol><symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.5a5 5 0 0 1 5.5 5"/></symbol><symbol id="i-layout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol><symbol id="i-archive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10h14V9M10 13h4"/></symbol><symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></symbol><symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></symbol><symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.6M8.2 13.2l7.6 4.6"/></symbol></svg>
-  <a class="skip-link" href="#results">Μετάβαση στα αποτελέσματα</a>
-  <header class="topbar">
-    <div class="brand-mark"><img src="cinema-icon-180.png" alt="" width="42" height="42"></div>
-    <div class="brand">
-      <h1>ScreenScore</h1>
-      <p>YOUR PERSONAL CINEMA GUIDE</p>
-    </div>
-    <button id="settingsBtn" class="icon-button" aria-label="Ρυθμίσεις"><svg class="icon" aria-hidden="true"><use href="#i-gear"/></svg></button>
+<a class="skip" href="#main">Μετάβαση στο περιεχόμενο</a>
+<div id="splash"><img src="icon-192.png" alt=""><b>Καιρός</b></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<div id="ptr" aria-hidden="true"></div>
+<div id="upb" role="status" hidden><span>Νέα έκδοση διαθέσιμη</span><button id="upBtn">Ανανέωση</button></div>
+<main id="main">
+  <header>
+    <button class="place" id="placeBtn" aria-label="Αλλαγή τοποθεσίας"><span id="placeName">Καιρός</span> <span aria-hidden="true">▾</span></button>
+    <span style="display:flex;gap:8px"><button class="icon-btn bellb" id="bell" aria-label="Ειδοποιήσεις"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span id="bellN" hidden></span></button><button class="icon-btn" id="share" aria-label="Κοινοποίηση" hidden>↗</button><button class="icon-btn" id="gear" aria-label="Ρυθμίσεις"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;margin:auto"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><button class="icon-btn" id="refresh" aria-label="Ανανέωση">↻</button></span>
   </header>
 
-  <main>
+  <div id="msg" class="msg" role="status" hidden></div>
+  <div id="fb" class="panel" hidden></div>
+  <div id="cronwarn" class="msg err" role="status" hidden></div>
+
+  <div id="view" hidden>
     <section class="hero">
-      <div class="eyebrow">PERSONAL CINEMA RADAR</div>
-      <h2>Τι αξίζει να δεις<br><span>απόψε;</span></h2>
-      <p>Ταινίες και σειρές από όλα τα είδη, κατατασσόμενες με τη βαθμολογία IMDb.</p>
-      <div class="hero-meta"><span class="live-dot" aria-hidden="true"></span><span id="statusText" role="status" aria-live="polite">Αναμονή σύνδεσης δεδομένων</span></div>
+      <div class="upd" id="upd"></div>
+      <div class="temp"><span id="t">--</span><sup>°</sup></div>
+      <div class="cond" id="cond"></div>
+      <div class="sub" id="sub"></div>
+      <div class="brief" id="brief" hidden></div>
     </section>
-
-    <section class="controls panel">
-      <div class="control-row">
-        <label for="typeFilter">Τύπος</label>
-        <select id="typeFilter">
-          <option value="all">Ταινίες & σειρές</option>
-          <option value="movie">Ταινίες</option>
-          <option value="tv">Σειρές</option>
-        </select>
-      </div>
-      <div class="control-row">
-        <label for="genreFilter">Είδος</label>
-        <select id="genreFilter"><option value="all">Όλα τα είδη</option></select>
-      </div>
-      <div class="control-row">
-        <label for="sortFilter">Ταξινόμηση</label>
-        <select id="sortFilter">
-          <option value="score" selected>Καλύτερη αξιολόγηση</option>
-          <option value="popular">Δημοφιλέστερα</option>
-          <option value="votes">Περισσότερες ψήφοι</option>
-          <option value="newest">Νεότερα</option>
-        </select>
-      </div>
-      <div class="control-row extra-filter"><label for="periodFilter">Περίοδος</label><select id="periodFilter"><option value="all">Όλες οι χρονιές</option><option value="5">Τελευταία 5 χρόνια</option><option value="10">Τελευταία 10 χρόνια</option><option value="2020">2020–σήμερα</option><option value="2010">2010–2019</option><option value="2000">2000–2009</option><option value="1990">1990–1999</option><option value="1980">1980–1989</option><option value="1970">1970–1979</option><option value="1960">1960–1969</option><option value="1950">1950–1959</option></select></div>
-      <div class="control-row extra-filter"><label for="minRatingFilter">Ελάχιστη βαθμολογία</label><select id="minRatingFilter"><option value="6" selected>6,0+/10</option><option value="6.5">6,5+/10</option><option value="7">7+/10</option><option value="8">8+/10</option><option value="8.5">8,5+/10</option></select></div>
-      <div class="control-row extra-filter"><label for="countryFilter">Χώρα παραγωγής</label><select id="countryFilter"><option value="all">Όλες οι χώρες</option><option value="US">ΗΠΑ</option><option value="GB">Ηνωμένο Βασίλειο</option><option value="FR">Γαλλία</option><option value="IT">Ιταλία</option><option value="ES">Ισπανία</option><option value="DE">Γερμανία</option><option value="JP">Ιαπωνία</option><option value="KR">Νότια Κορέα</option><option value="IN">Ινδία</option><option value="CA">Καναδάς</option><option value="AU">Αυστραλία</option><option value="CY">Κύπρος</option><option value="GR">Ελλάδα</option></select></div>
-      <div class="control-row extra-filter"><label for="languageFilter">Γλώσσα</label><select id="languageFilter"><option value="all">Όλες οι γλώσσες</option><option value="en">Αγγλικά</option><option value="el">Ελληνικά</option><option value="fr">Γαλλικά</option><option value="it">Ιταλικά</option><option value="es">Ισπανικά</option><option value="de">Γερμανικά</option><option value="ja">Ιαπωνικά</option><option value="ko">Κορεατικά</option><option value="hi">Χίντι</option><option value="zh">Κινεζικά</option></select></div>
-      <div class="control-row service-row"><label for="serviceFilter">Πού να το δω</label><select id="serviceFilter"><option value="0">Παντού</option><option value="3">Netflix ή Cinobo</option><option value="1">Μόνο Netflix</option><option value="2">Μόνο Cinobo</option></select></div>
-      <div class="search-row">
-        <input id="searchInput" type="search" placeholder="Αναζήτηση οποιουδήποτε τίτλου…" autocomplete="off">
-        <button id="searchBtn" class="primary-button">Αναζήτηση</button>
-      </div>
-    </section>
-
-    <section class="section-head">
-      <div>
-        <p class="eyebrow">SCREENSCORE RANKING</p>
-        <h2 id="resultsTitle">Top 100 ταινίες και σειρές</h2>
-      </div>
-      <span class="count-pill" id="resultCount">0 τίτλοι</span>
-    </section>
-
-    <div id="notice" class="notice">
-      <strong>Σύνδεσε τα δεδομένα σου</strong>
-      <p>Άνοιξε τις ρυθμίσεις και πρόσθεσε το προσωπικό σου TMDB API key για να φορτώνονται πραγματικοί τίτλοι και βαθμολογίες.</p>
-      <button id="noticeSettings" class="secondary-button">Άνοιγμα ρυθμίσεων</button>
+    <h2>Επίσημες προειδοποιήσεις · Κύπρος</h2>
+    <div id="official" aria-live="polite" style="margin-bottom:12px"></div>
+    <section class="stats" id="stats"></section>
+    <div id="favsum" hidden><h2>Αγαπημένες τοποθεσίες</h2><div class="panel" id="favlist"></div></div>
+    <h2>Επόμενες ώρες</h2>
+    <div class="hours" id="hours"></div>
+    <p class="sub" style="font-size:.8rem;margin:-8px 0 16px">Το ποσοστό κάτω από κάθε ώρα είναι η πιθανότητα βροχής εκείνης της ώρας.</p>
+    <h2>Θερμοκρασία και βροχή (24 ώρες)</h2>
+    <div class="panel" id="chart"></div>
+    <h2>UV και ώρα εξόδου</h2>
+    <div class="panel" id="outdoor"></div>
+    <div id="cypanel" hidden><h2>Για την Κύπρο</h2><div class="panel" id="cy"></div></div>
+    <h2>Σύγκριση με χθες</h2>
+    <div class="panel" id="hist">Φόρτωση…</div>
+    <h2>Fun fact της ημέρας</h2>
+    <div class="panel" id="fun"></div>
+    <h2>Σαν σήμερα</h2>
+    <div class="panel" id="otd">Φόρτωση…</div>
+    <h2>Ήλιος και Σελήνη</h2>
+    <div class="panel" id="sun"></div>
+    <h2>Ποιότητα αέρα και γύρη</h2>
+    <div class="panel" id="air">Φόρτωση…</div>
+    <h2>Θάλασσα</h2>
+    <div class="panel" id="sea">Φόρτωση…</div>
+    <h2>Ραντάρ βροχής</h2>
+    <button class="pill" id="radarBtn" style="margin:0 0 18px">Εμφάνιση ραντάρ</button>
+    <div id="radarBox" hidden>
+      <div id="map"></div>
+      <div class="rc"><button id="rplay" aria-label="Αναπαραγωγή">⏸</button><input type="range" id="rslide" aria-label="Χρόνος ραντάρ" min="0" value="0"><span id="rtime"></span></div>
+      <p class="foot" style="margin:-10px 0 18px">Τελευταίες 2 ώρες (δεν είναι πρόγνωση). Πηγή: RainViewer · © OpenStreetMap. Το μέγιστο ζουμ είναι 7.</p>
     </div>
+    <h2>Επόμενες 7 ημέρες</h2>
+    <div class="days" id="days"></div>
+    <p class="sub" style="font-size:.8rem;margin:6px 0 0">Πάτα μια μέρα για να δεις τις ώρες της.</p>
+    <h2 style="margin-top:18px">Πόσο σίγουρη είναι η πρόγνωση</h2>
+    <div class="panel" id="unc">Φόρτωση…</div>
+    <h2>Δεύτερη γνώμη · MET Norway</h2>
+    <div class="panel" id="met">Φόρτωση…</div>
+    <h2>Αεροδρόμια · METAR/TAF</h2>
+    <div class="panel" id="avwx">Φόρτωση…</div>
+    <p class="foot" id="foot"></p>
+    <button class="link" id="install" hidden>Εγκατάσταση εφαρμογής</button>
+  </div>
+</main>
 
-    <section id="results" class="results" aria-label="Αποτελέσματα" tabindex="-1"></section>
+<dialog id="sdlg">
+  <div class="row"><b>Ρυθμίσεις</b><button class="link" id="sClose">Κλείσιμο</button></div>
+  <label class="srow">Θερμοκρασία <select id="s_t"><option value="c">°C</option><option value="f">°F</option></select></label>
+  <label class="srow">Ταχύτητα ανέμου <select id="s_w"><option value="kmh">km/h</option><option value="mph">mph</option><option value="ms">m/s</option><option value="bf">Beaufort</option></select></label>
+  <label class="srow">Μέγεθος γραμμάτων <select id="s_fs"><option value="s">Μικρά</option><option value="m">Κανονικά</option><option value="l">Μεγάλα</option></select></label>
+  <label class="srow">Γλώσσα <select id="s_lang"><option value="el">Ελληνικά</option><option value="en">English</option></select></label>
+  <button class="link" id="notifBtn" style="margin-top:6px;display:block">Ειδοποιήσεις</button>
+  <button class="link" id="layoutBtn" style="margin-top:6px;display:block">Προσαρμογή οθόνης</button>
+  <button class="link" id="shareBtn" style="margin-top:6px;display:block">Κοινοποίηση καιρού</button>
+  <button class="link" id="reportBtn" style="margin-top:6px;display:block">Αναφορά προβλήματος</button>
+  <button class="link" id="aboutBtn" style="margin-top:6px">Σχετικά και πηγές</button>
+</dialog>
+
+<dialog id="ndlg">
+  <div class="row"><b>Ειδοποιήσεις</b><button class="link" id="nClose">Κλείσιμο</button></div>
+  <p class="sub" id="nmsg" style="margin:8px 0;color:#9aa7bb"></p>
+  <label class="opt"><input type="checkbox" id="n_official">🏛️ Επίσημες προειδοποιήσεις Κύπρου</label>
+  <div class="thr">ελάχιστο επίπεδο: <select id="n_min"><option value="1">Κίτρινη και άνω</option><option value="2">Πορτοκαλί και άνω</option><option value="3">Μόνο κόκκινες</option></select></div>
+  <label class="opt"><input type="checkbox" id="n_storm">⛈️ Καταιγίδες και κεραυνοί</label>
+  <label class="opt"><input type="checkbox" id="n_rain">🌧️ Βροχή και πλημμύρες</label>
+  <div class="thr"><label><input type="checkbox" id="n_rainMm" style="width:auto;display:inline-block;margin:0 6px 0 0;padding:0">ποσότητα ≥ <input id="n_rainT" type="number" step="any" inputmode="decimal"> mm/ώρα (0.1–100)</label></div>
+  <div class="thr"><label><input type="checkbox" id="n_rainProb" style="width:auto;display:inline-block;margin:0 6px 0 0;padding:0">πιθανότητα ≥ <input id="n_rainP" type="number" step="any" inputmode="decimal"> % (1–100)</label></div>
+  <label class="opt"><input type="checkbox" id="n_wind">💨 Ισχυροί άνεμοι</label>
+  <div class="thr">ριπές πάνω από <input id="n_gust" type="number" inputmode="numeric"> km/h (1–250)</div>
+  <label class="opt"><input type="checkbox" id="n_hot">🌡️ Καύσωνας</label>
+  <div class="thr">θερμοκρασία από <input id="n_hotT" type="number" inputmode="numeric">°C</div>
+  <label class="opt"><input type="checkbox" id="n_frost">🥶 Παγετός</label>
+  <div class="thr">θερμοκρασία έως <input id="n_coldT" type="number" inputmode="numeric">°C</div>
+  <label class="opt"><input type="checkbox" id="n_snow">❄️ Χιόνι και πάγος</label>
+  <label class="opt"><input type="checkbox" id="n_dust">🌫️ Σκόνη (εκτίμηση μοντέλου)</label>
+  <div class="thr">όριο σκόνης <input id="n_dustT" type="number" step="any" inputmode="decimal"> µg/m³ (1–2000)</div>
+  <label class="opt"><input type="checkbox" id="n_morn">☀️ Πρωινή περίληψη</label>
+  <div class="thr">ώρα αποστολής <input id="n_mornT" type="time"></div>
+  <div class="opt" style="display:block">📅 Έγκαιρη ειδοποίηση <select id="n_ahead" style="width:auto;display:inline-block;margin-left:6px"><option value="0">Όχι</option><option value="1">1 ημέρα πριν</option><option value="2">2 ημέρες πριν</option><option value="3">3 ημέρες πριν</option><option value="5">5 ημέρες πριν</option><option value="7">7 ημέρες πριν</option></select></div>
+  <div class="thr">για τα παραπάνω φαινόμενα στην κύρια τοποθεσία. Έρχεται μόλις φανεί στην πρόγνωση και μετά κάθε μέρα στην ώρα της πρωινής περίληψης, μέχρι να έρθει η μέρα. Αν μετακινηθεί σε άλλη μέρα, σου γράφει τη νέα ημερομηνία· αν φύγει από την πρόγνωση, έρχεται ένα μήνυμα ακύρωσης.</div>
+  <label class="opt"><input type="checkbox" id="n_quiet">🌙 Ώρες ησυχίας</label>
+  <div class="thr">ησυχία από <input id="n_qFrom" type="time"> έως <input id="n_qTo" type="time"> (οι κόκκινες επίσημες προειδοποιήσεις περνούν πάντα)</div>
+  <label class="opt"><input type="checkbox" id="n_favAlerts">⭐ Ειδοποιήσεις και για τις αγαπημένες πόλεις</label>
+  <div>
+    <button class="pill" id="nOn">Ενεργοποίηση</button>
+    <button class="pill" id="nSave" hidden>Αποθήκευση</button>
+    <button class="pill alt" id="nTest" hidden>Δοκιμή</button>
+    <button class="pill alt" id="nCheck" hidden>Έλεγχος τώρα</button>
+    <button class="pill alt" id="nHist" hidden>Ιστορικό</button>
+    <button class="pill alt" id="nOff" hidden>Απενεργοποίηση</button>
+  </div>
+</dialog>
+
+<dialog id="ldlg">
+  <div class="row"><b>Προσαρμογή οθόνης</b><button class="link" id="lClose">Κλείσιμο</button></div>
+  <p class="sub" style="font-size:.85rem;margin:6px 0 8px">Διάλεξε ποιες ενότητες φαίνονται και με ποια σειρά. Πάτα πάνω σε έναν τίτλο ενότητας για να τη μαζέψεις ή να την ανοίξεις.</p>
+  <div id="lList"></div>
+  <button class="pill alt" id="lReset">Επαναφορά</button>
+</dialog>
+
+<dialog id="odlg" class="ab">
+  <b style="margin:0;font-size:1.1rem">Καλώς ήρθες στον Καιρό</b>
+  <p>📍 Διάλεξε τοποθεσία πάνω αριστερά και πρόσθεσε αγαπημένες πόλεις.</p>
+  <p>🔔 Στο ⚙ → Ειδοποιήσεις μπορείς να λαμβάνεις push για επίσημες προειδοποιήσεις και ακραία φαινόμενα. Χρειάζεται η εφαρμογή να είναι προσθεμένη στην αρχική οθόνη.</p>
+  <p>🧩 Στο ⚙ → Προσαρμογή οθόνης κρύβεις, μετακινείς ή μαζεύεις ενότητες.</p>
+  <p>ℹ️ Οι προγνώσεις είναι εκτιμήσεις. Σε έκτακτη ανάγκη κάλεσε το <a href="tel:112">112</a>.</p>
+  <button class="pill" id="oGo">Ξεκίνα</button>
+</dialog>
+
+<dialog id="idlg">
+  <div class="row"><b>Ειδοποιήσεις</b><button class="link" id="iClose">Κλείσιμο</button></div>
+  <div id="iSel"></div>
+  <div id="iList"></div>
+  <button class="pill alt" id="iClr" style="margin-top:12px">Καθαρισμός λίστας</button>
+</dialog>
+<dialog id="rdlg">
+  <div class="row"><b>Αναφορά προβλήματος</b><button class="link" id="rClose">Κλείσιμο</button></div>
+  <p class="sub" style="font-size:.85rem;margin:6px 0">Στείλε μου αυτό το κείμενο. Περιέχει έκδοση, συσκευή, τοποθεσία στρογγυλεμένη στο 0,1° και τεχνικά σφάλματα, όχι κωδικούς.</p>
+  <textarea id="rText" readonly rows="12" style="width:100%;font:inherit;font-size:.78rem;padding:10px;border-radius:12px;border:1px solid #3a475c;background:#0f1622;color:#fff;margin:6px 0"></textarea>
+  <button class="pill" id="rCopy">Αντιγραφή</button>
+  <button class="pill alt" id="rShare">Κοινοποίηση</button>
+</dialog>
+
+<dialog id="adlg" class="ab">
+  <div class="row"><b style="margin:0">Σχετικά και πηγές</b><button class="link" id="aClose">Κλείσιμο</button></div>
+  <p id="aver" style="color:#9aa7bb"></p>
+  <b>Πηγές δεδομένων</b>
+  <p>Καιρός, ποιότητα αέρα, θάλασσα, ιστορικό και σύγκριση μοντέλων: <a href="https://open-meteo.com">Open-Meteo</a> (CC BY 4.0).</p>
+  <p>Επίσημες προειδοποιήσεις: Τμήμα Μετεωρολογίας Κύπρου μέσω <a href="https://meteoalarm.org/en/live/region/CY">MeteoAlarm</a> (CC BY 4.0).</p>
+  <p>Ραντάρ βροχής: <a href="https://www.rainviewer.com">RainViewer</a>. Χάρτης: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors. Βιβλιοθήκη χάρτη: <a href="https://leafletjs.com">Leaflet</a>.</p>
+  <p>Ανατολή, δύση και φάση σελήνης: <a href="https://sunrise-sunset.org">Sunrise-Sunset.org</a>.</p>
+  <b>Ιδιωτικότητα</b>
+  <p>Η τοποθεσία και οι ρυθμίσεις σου αποθηκεύονται μόνο στη συσκευή σου. Δεν υπάρχουν λογαριασμοί, cookies ή αναλυτικά στατιστικά. Οι συντεταγμένες στέλνονται στο Open-Meteo και στο Sunrise-Sunset.org για τα δεδομένα, και ο χάρτης ραντάρ φορτώνει εικόνες από το RainViewer και το OpenStreetMap (που βλέπουν τη διεύθυνση IP σου).</p>
+  <b>Περιορισμοί</b>
+  <p>Οι προγνώσεις είναι εκτιμήσεις από μοντέλα και μπορεί να αλλάξουν. Η εφαρμογή δεν αντικαθιστά τις επίσημες ανακοινώσεις. Σε έκτακτη ανάγκη κάλεσε το <a href="tel:112">112</a>.</p>
+</dialog>
+
+<dialog id="dlg">
+  <div class="row"><b>Τοποθεσία</b><button class="link" id="close">Κλείσιμο</button></div>
+  <div id="favs"></div>
+  <input id="q" type="search" aria-label="Αναζήτηση πόλης" placeholder="Αναζήτηση πόλης" autocomplete="off">
+  <button class="link" id="geo">Χρήση της τρέχουσας τοποθεσίας</button>
+  <div id="results"></div>
+</dialog>
+
+<script>
+const $ = id => document.getElementById(id);
+const WMO = {
+  0:['Αίθριος','☀️','🌙','clear'],1:['Κυρίως αίθριος','🌤️','🌙','clear'],2:['Λίγα σύννεφα','⛅','☁️','cloud'],3:['Συννεφιά','☁️','☁️','cloud'],
+  45:['Ομίχλη','🌫️','🌫️','fog'],48:['Παγωμένη ομίχλη','🌫️','🌫️','fog'],
+  51:['Ασθενής ψιχάλα','🌦️','🌧️','rain'],53:['Ψιχάλα','🌦️','🌧️','rain'],55:['Έντονη ψιχάλα','🌧️','🌧️','rain'],
+  56:['Παγωμένη ψιχάλα','🌧️','🌧️','rain'],57:['Παγωμένη ψιχάλα','🌧️','🌧️','rain'],
+  61:['Ασθενής βροχή','🌦️','🌧️','rain'],63:['Βροχή','🌧️','🌧️','rain'],65:['Ισχυρή βροχή','🌧️','🌧️','rain'],
+  66:['Παγωμένη βροχή','🌧️','🌧️','rain'],67:['Παγωμένη βροχή','🌧️','🌧️','rain'],
+  71:['Ασθενής χιονόπτωση','🌨️','🌨️','snow'],73:['Χιονόπτωση','🌨️','🌨️','snow'],75:['Έντονη χιονόπτωση','❄️','❄️','snow'],77:['Κόκκοι χιονιού','🌨️','🌨️','snow'],
+  80:['Ράντζες βροχής','🌦️','🌧️','rain'],81:['Μπόρες','🌧️','🌧️','rain'],82:['Ισχυρές μπόρες','⛈️','⛈️','storm'],
+  85:['Χιονοπτώσεις','🌨️','🌨️','snow'],86:['Ισχυρές χιονοπτώσεις','❄️','❄️','snow'],
+  95:['Καταιγίδα','⛈️','⛈️','storm'],96:['Καταιγίδα με χαλάζι','⛈️','⛈️','storm'],99:['Ισχυρή καταιγίδα με χαλάζι','⛈️','⛈️','storm']
+};
+const info = c => WMO[c] || ['—','❔','❔','cloud'];
+const CL='<path d="M6.5 19h10.5a4 4 0 0 0 .5-7.97 5.5 5.5 0 0 0-10.6-1.03A4.5 4.5 0 0 0 6.5 19z"/>';
+const UP='<g transform="translate(0,-3)">'+CL+'</g>';
+const IC={
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/>',
+  moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+  part:'<circle cx="8" cy="8" r="2.8"/><path d="M8 2v1.2M2 8h1.2M3.8 3.8l.9.9M12.2 3.8l-.9.9"/><g transform="translate(3,3) scale(.85)">'+CL+'</g>',
+  fog:'<path d="M4 8h16M6 12h12M4 16h16M8 20h8"/>',
+  rain:UP+'<path d="M8 18.5l-1 2.5M12 18.5l-1 2.5M16 18.5l-1 2.5"/>',
+  snow:UP+'<circle cx="8" cy="19" r=".9" fill="currentColor"/><circle cx="12" cy="21" r=".9" fill="currentColor"/><circle cx="16" cy="19" r=".9" fill="currentColor"/>',
+  storm:UP+'<path d="M13 15.5l-2.5 3.5h3.5l-2.5 3.5"/>'
+};
+function icon(c,day,sz){
+  const k=info(c)[3]; let g;
+  if(c===0||c===1) g=day?IC.sun:IC.moon;
+  else if(c===2 && day) g=IC.part;
+  else g=IC[k] || CL;
+  return '<svg class="ic" width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+g+'</svg>';
+}
+const store = {
+  get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+};
+const STALE_MIN = 4;
+let place = store.get('place');
+const LANG = store.get('lang')==='en' ? 'en' : 'el', LOC = LANG==='en' ? 'en-GB' : 'el-GR';
+let U = Object.assign({t:'c',w:'kmh'}, store.get('units'));
+try{ document.documentElement.style.fontSize={s:'93.75%',m:'100%',l:'118.75%'}[store.get('fs')]||'100%'; }catch(e){}
+const cv = c => U.t==='f' ? c*9/5+32 : c;
+const R = c => Math.round(cv(c));
+const BF = [1,6,12,20,29,39,50,62,75,89,103,118];
+const fW = k => U.w==='mph' ? Math.round(k*0.621371)+' mph' : U.w==='ms' ? Math.round(k/3.6)+' m/s' : U.w==='bf' ? BF.filter(x=>k>=x).length+' Bf' : Math.round(k)+' km/h';
+async function jget(u,tries=2){
+  for(let k=0;k<tries;k++){
+    const c=new AbortController(), t=setTimeout(()=>c.abort(),10000);
+    try{ const r=await fetch(u,{signal:c.signal}); clearTimeout(t); if(r.ok) return await r.json(); }catch(e){ clearTimeout(t); }
+    await new Promise(r=>setTimeout(r,800));
+  }
+  throw new Error('fetch failed');
+}
+setInterval(()=>{ if(!document.hidden) load(false); }, 5*60000);
+
+function showMsg(text, err){ const m=$('msg'); m.textContent=text; m.className='msg'+(err?' err':''); m.hidden=false; }
+function hideMsg(){ $('msg').hidden=true; }
+
+async function load(force){
+  if(!place){ return; }
+  $('placeName').textContent = place.name;
+  const cache = store.get('wx');
+  const fresh = cache && cache.key===place.lat+','+place.lon && (Date.now()-cache.at) < STALE_MIN*60000;
+  if(cache && cache.key===place.lat+','+place.lon) render(cache.data, cache.at, !fresh);
+  if(fresh && !force) return;
+  if(!cache) showMsg('Φόρτωση δεδομένων…');
+  $('refresh').classList.add('spin');
+  try{
+    const u = 'https://api.open-meteo.com/v1/forecast?latitude='+place.lat+'&longitude='+place.lon+
+      '&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,pressure_msl,is_day'+
+      '&hourly=temperature_2m,precipitation,precipitation_probability,weather_code,wind_gusts_10m,uv_index,apparent_temperature,relative_humidity_2m,is_day'+
+      '&daily=weather_code,sunrise,sunset,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,uv_index_max'+
+      '&timezone=auto&forecast_days=7&wind_speed_unit=kmh';
+    let data; try{ data = await jget(u+'&minutely_15=precipitation&forecast_minutely_15=8'); }catch(e1){ data = await jget(u); }
+    const at = Date.now();
+    store.set('wx',{key:place.lat+','+place.lon,data,at});
+    hideMsg(); render(data, at, false);
+  }catch(e){
+    if(cache) showMsg('Δεν υπάρχει σύνδεση. Εμφανίζονται τα τελευταία δεδομένα — μπορεί να έχουν αλλάξει.', true);
+    else { try{ const rr=await jget('/api/met?lat='+place.lat.toFixed(3)+'&lon='+place.lon.toFixed(3)); renderFallback(rr.rows); hideMsg(); }catch(e2){ showMsg('Δεν φορτώθηκαν δεδομένα καιρού. Έλεγξε τη σύνδεση και πάτα ανανέωση.', true); } }
+  }finally{ $('refresh').classList.remove('spin'); }
+}
+
+function render(d, at, stale){
+  $('fb').hidden=true;
+  const c = d.current, [txt, dayE, nightE, sky] = info(c.weather_code);
+  const night = !c.is_day;
+  document.body.dataset.sky = sky==='clear' ? (night?'clear-night':'clear-day') : sky;
+  const sr0=tmin(d.daily.sunrise[0]), ss0=tmin(d.daily.sunset[0]), nw0=tmin(c.time);
+  document.body.dataset.tod = sky==='clear' ? (Math.abs(nw0-sr0)<=45?'dawn':Math.abs(nw0-ss0)<=45?'dusk':'') : '';
+  document.body.dataset.night = night?'1':'';
+  const top = getComputedStyle(document.body).getPropertyValue('--top').trim();
+  document.querySelector('meta[name=theme-color]').content = top;
+
+  $('t').textContent = R(c.temperature_2m);
+  $('cond').innerHTML = icon(c.weather_code,!night,34)+'<span>'+txt+'</span>';
+  $('sub').textContent = 'Αισθητή '+R(c.apparent_temperature)+'° · Μέγ. '+R(d.daily.temperature_2m_max[0])+'° · Ελάχ. '+R(d.daily.temperature_2m_min[0])+'°';
+
+  const uv = d.daily.uv_index_max[0];
+  $('stats').innerHTML =
+    stat(d.daily.precipitation_probability_max[0]+'%','Πιθανότητα βροχής σήμερα',rainHours(d))+
+    stat(fW(c.wind_speed_10m),'Άνεμος '+(LANG==='en'?['N','NE','E','SE','S','SW','W','NW']:['Β','ΒΑ','Α','ΝΑ','Ν','ΝΔ','Δ','ΒΔ'])[Math.round(c.wind_direction_10m/45)%8]+' (ριπές '+fW(c.wind_gusts_10m)+')')+
+    stat(c.relative_humidity_2m+'%','Υγρασία')+
+    stat(uv==null?'—':Math.round(uv),'Δείκτης UV (μέγ.)')+
+    stat(Math.round(c.pressure_msl!=null?c.pressure_msl:c.surface_pressure)+' hPa','Πίεση (στάθμη θάλασσας)')+
+    stat(d.daily.sunrise[0].slice(11,16)+' / '+d.daily.sunset[0].slice(11,16),'Ανατολή / Δύση');
+
+  const nowH = c.time.slice(0,13)+':00';
+  let i = d.hourly.time.findIndex(t=>t>=nowH); if(i<0) i=0;
+  let h=''; 
+  for(let k=i;k<i+24 && k<d.hourly.time.length;k++){
+    const p=d.hourly.precipitation_probability[k], inf=info(d.hourly.weather_code[k]);
+    h+='<div class="h"><small>'+(k===i?'Τώρα':d.hourly.time[k].slice(11,13)+':00')+'</small><span class="e">'+icon(d.hourly.weather_code[k],d.hourly.is_day[k],26)+'</span><b>'+R(d.hourly.temperature_2m[k])+'°</b><span class="p'+(p>=30?' hi':'')+'">'+(p===0?'':DROP+(p==null?'—':p+'%'))+'</span></div>';
+  }
+  $('hours').innerHTML=h;
+  $('chart').innerHTML=chart(d,i); outdoor(d,i); cypanel(d,i); if(rmap) radarMove(); if(!stale){ loadFavs(); loadOfficial(); checkCron(); lazy('air',loadAir); lazy('sea',loadSea); lazy('unc',loadUnc); lazy('hist',loadHist); lazy('met',()=>loadMet(d)); lazy('avwx',loadAvwx); }
+
+  lastD=d; renderDays(d);
+
+  $('upd').textContent = 'Ενημερώθηκε στις '+new Date(at).toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit',second:'2-digit'})+(stale?' (παλιά)':'');
+  const when = new Date(at).toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit'});
+  $('foot').textContent = 'Ενημερώθηκε στις '+when+(stale?' (παλιά δεδομένα)':'')+'. Πηγή: Open-Meteo (οι τρέχουσες συνθήκες ενημερώνονται ανά 15 λεπτά). Ανανεώνεται αυτόματα κάθε 5 λεπτά όσο η εφαρμογή είναι ανοιχτή. Οι προγνώσεις γίνονται λιγότερο αξιόπιστες όσο απομακρύνονται στο χρόνο· η πιθανότητα βροχής δείχνει πόσο αβέβαιη είναι η πρόγνωση. Η τοποθεσία αποθηκεύεται μόνο στη συσκευή σου και στέλνεται στο Open-Meteo για την πρόγνωση.';
+  $('view').hidden=false;
+  brief(d,i); lastD=d; lazy('sun',()=>sunmoon(d)); renderFun(d); lazy('otd',()=>loadOTD(d)); fx(); hideSplash(); maybeOnboard();
+}
+const stat=(b,s,x)=>'<div class="stat"><b>'+b+'</b><span>'+s+'</span>'+(x?'<em>'+x+'</em>':'')+'</div>';
+const DROP='<svg width="9" height="11" viewBox="0 0 9 11" aria-hidden="true" style="flex:none"><path d="M4.5 0C4.5 0 0 5 0 7.2a4.5 4.5 0 0 0 9 0C9 5 4.5 0 4.5 0z" fill="currentColor"/></svg>';
+function rainHours(d){
+  const h=d.hourly, P=h.precipitation_probability||[], day=d.current.time.slice(0,10), nowH=d.current.time.slice(0,13)+':00';
+  let i0=h.time.findIndex(t=>t>=nowH); if(i0<0) i0=0;
+  let end=i0; while(end<h.time.length && h.time[end].slice(0,10)===day) end++;
+  const hr1=k=>h.time[k].slice(11,13)+':00', hrEnd=k=>('0'+((+h.time[k].slice(11,13)+1)%24)).slice(-2)+':00';
+  let mx=0, mk=i0;
+  for(let j=i0;j<end;j++) if((P[j]||0)>mx){ mx=P[j]; mk=j; }
+  if(mx===0) return 'Δεν αναμένεται βροχή για το υπόλοιπο της ημέρας.';
+  const runs=[]; let r=null;
+  for(let j=i0;j<=end;j++){
+    const p=j<end?(P[j]||0):0;
+    if(p>=30){ if(!r) r={s:j,e:j,m:p}; else{ r.e=j; r.m=Math.max(r.m,p); } }
+    else if(r){ runs.push(r); r=null; }
+  }
+  if(!runs.length) return 'Μικρή πιθανότητα (έως '+mx+'% γύρω στις '+hr1(mk)+').';
+  return 'Πιθανή βροχή: '+runs.slice(0,3).map(x=>hr1(x.s)+'–'+hrEnd(x.e)+' (έως '+x.m+'%)').join(' · ');
+}
+
+function useGeo(){
+  if(!navigator.geolocation){ showMsg('Η συσκευή δεν υποστηρίζει εντοπισμό. Αναζήτησε πόλη.', true); $('dlg').showModal(); return; }
+  showMsg('Εντοπισμός τοποθεσίας…');
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const lat=+pos.coords.latitude.toFixed(3), lon=+pos.coords.longitude.toFixed(3);
+    const nt=nearTown(lat,lon); let name=nt?'Κοντά σε '+nt:'Τρέχουσα τοποθεσία';
+    place={name,lat,lon}; store.set('place',place); if(NP.on) pushSync().catch(()=>{}); load(true);
+  }, ()=>{
+    showMsg('Δεν δόθηκε πρόσβαση στην τοποθεσία. Διάλεξε πόλη χειροκίνητα.', true);
+    $('dlg').showModal();
+  },{timeout:10000,maximumAge:600000});
+}
+
+let tm;
+$('q').addEventListener('input',()=>{
+  clearTimeout(tm);
+  const v=$('q').value.trim();
+  if(v.length<2){ $('results').innerHTML=''; return; }
+  tm=setTimeout(async()=>{
+    try{
+      const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(v)+'&count=6&language='+LANG);
+      const j=await r.json();
+      $('results').innerHTML=(j.results||[]).map((p,k)=>'<button class="res" data-k="'+k+'">'+p.name+'<br><small>'+[p.admin1,p.country].filter(Boolean).join(', ')+'</small></button>').join('')||'<p class="sub" style="padding:10px 0">Δεν βρέθηκε.</p>';
+      $('results').onclick=e=>{
+        const b=e.target.closest('.res'); if(!b) return;
+        const p=j.results[+b.dataset.k];
+        place={name:grName(p.name,p.latitude,p.longitude),lat:p.latitude,lon:p.longitude}; store.set('place',place); if(NP.on) pushSync().catch(()=>{}); addPlace(place);
+        $('dlg').close(); $('q').value=''; $('results').innerHTML=''; load(true);
+      };
+    }catch(e){ $('results').innerHTML='<p class="sub" style="padding:10px 0">Η αναζήτηση χρειάζεται σύνδεση.</p>'; }
+  },300);
+});
+$('placeBtn').onclick=()=>{ renderFavs(); $('dlg').showModal(); };
+$('close').onclick=()=>$('dlg').close();
+$('geo').onclick=()=>{ $('dlg').close(); useGeo(); };
+$('refresh').onclick=()=>place?load(true):useGeo();
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) load(false); });
 
 
-    <section class="tools-section panel" id="toolsSection">
-      <div class="section-head tools-head"><div><p class="eyebrow">DISCOVER MORE</p><h2>Εργαλεία ScreenScore</h2></div></div>
-      <p class="tools-group-label">Ανακάλυψη</p>
-      <div class="tools-grid">
-        <button class="secondary-button" id="recommendBtn"><svg class="icon" aria-hidden="true"><use href="#i-sparkle"/></svg>Προτάσεις για εμένα</button>
-        <button class="secondary-button upgrade-tool" id="hiddenGemsBtn"><svg class="icon" aria-hidden="true"><use href="#i-gem"/></svg>Hidden Gems</button>
-        <button class="secondary-button" id="newReleasesBtn"><svg class="icon" aria-hidden="true"><use href="#i-film"/></svg>Νέες κυκλοφορίες</button>
-        <button class="secondary-button" id="moodBtn"><svg class="icon" aria-hidden="true"><use href="#i-cloud"/></svg>Τι διάθεση έχω;</button>
-        <button class="secondary-button" id="tonightBtn"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg>Τι να δω απόψε;</button>
-        <button class="secondary-button" id="peopleSearchBtn"><svg class="icon" aria-hidden="true"><use href="#i-user"/></svg>Ηθοποιός / σκηνοθέτης</button>
-        <button class="secondary-button" id="franchiseBtn"><svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg>Σειρές ταινιών</button>
-        <button class="secondary-button" id="awardsBtn"><svg class="icon" aria-hidden="true"><use href="#i-trophy"/></svg>Βραβεία & φεστιβάλ</button>
-        <button class="secondary-button" id="runtimeBtn"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>Φίλτρο διάρκειας</button>
-      </div>
-      <p class="tools-group-label">Ανάλυση</p>
-      <div class="tools-grid">
-        <button class="secondary-button" id="statsBtn"><svg class="icon" aria-hidden="true"><use href="#i-chart"/></svg>Ανάλυση αποτελεσμάτων</button>
-        <button class="secondary-button" id="compareBtn"><svg class="icon" aria-hidden="true"><use href="#i-compare"/></svg>Σύγκριση τίτλων</button>
-        <button class="secondary-button" id="scoreEngineBtn"><svg class="icon" aria-hidden="true"><use href="#i-sigma"/></svg>Πώς βαθμολογούμε</button>
-      </div>
-      <p class="tools-group-label">Προσωπικά</p>
-      <div class="tools-grid">
-        <button class="secondary-button" id="profileBtn"><svg class="icon" aria-hidden="true"><use href="#i-profile"/></svg>Προφίλ & απολογισμός</button>
-        <button class="secondary-button" id="savedFiltersBtn"><svg class="icon" aria-hidden="true"><use href="#i-flag"/></svg>Αποθηκευμένα φίλτρα</button>
-        <button class="secondary-button" id="familyBtn"><svg class="icon" aria-hidden="true"><use href="#i-users"/></svg>Λίστα παρέας</button>
-        <button class="secondary-button" id="layoutBtn"><svg class="icon" aria-hidden="true"><use href="#i-layout"/></svg>Εμφάνιση</button>
-        <button class="secondary-button" id="importBtn"><svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>Εισαγωγή IMDb / Letterboxd</button>
-        <button class="secondary-button" id="backupBtn"><svg class="icon" aria-hidden="true"><use href="#i-archive"/></svg>Αντίγραφο ασφαλείας</button>
-        <button class="secondary-button" id="standardResultsBtn"><svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg>Επιστροφή στο Top 100</button>
-        <input type="file" id="importBackupFile" accept="application/json,.json" hidden>
-      </div>
-      <div id="toolPanel" class="tool-panel" hidden></div>
-      <p class="help">Οι προτάσεις χρησιμοποιούν τους αγαπημένους σου στη Watchlist. Τα εργαλεία ακολουθούν τη ρύθμιση για τίτλους ενηλίκων και Animation.</p>
-    </section>
+/* ---------- Ελληνικά ονόματα για τοποθεσίες της Κύπρου ---------- */
+const CYGR={lefkosia:'Λευκωσία',nicosia:'Λευκωσία',lemesos:'Λεμεσός',limassol:'Λεμεσός',larnaka:'Λάρνακα',larnaca:'Λάρνακα',pafos:'Πάφος',paphos:'Πάφος',
+ ammochostos:'Αμμόχωστος',famagusta:'Αμμόχωστος',keryneia:'Κερύνεια',kyrenia:'Κερύνεια',morfou:'Μόρφου',morphou:'Μόρφου','agia napa':'Αγία Νάπα','ayia napa':'Αγία Νάπα',
+ protaras:'Πρωταράς',paralimni:'Παραλίμνι',polis:'Πόλις','polis chrysochous':'Πόλις Χρυσοχούς',troodos:'Τρόοδος',platres:'Πλάτρες','pano platres':'Πάνω Πλάτρες',
+ omodos:'Όμοδος',kakopetria:'Κακοπετριά',lofou:'Λόφου',aglantzia:'Αγλαντζιά',strovolos:'Στρόβολος',lakatamia:'Λακατάμια',latsia:'Λατσιά',egkomi:'Έγκωμη',engomi:'Έγκωμη',
+ ypsonas:'Ύψωνας',germasogeia:'Γερμασόγεια','mesa geitonia':'Μέσα Γειτονιά','kato polemidia':'Κάτω Πολεμίδια',geroskipou:'Γεροσκήπου',pegeia:'Πέγεια',peyia:'Πέγεια',
+ aradippou:'Αραδίππου',livadia:'Λιβάδια',dali:'Δάλι',deryneia:'Δερύνεια',sotira:'Σωτήρα',xylofagou:'Ξυλοφάγου',oroklini:'Ορόκλινη',pyla:'Πύλα',tseri:'Τσέρι',
+ kofinou:'Κοφίνου',pissouri:'Πισσούρι',episkopi:'Επισκοπή',prodromos:'Πρόδρομος',pedoulas:'Πεδουλάς',kalopanagiotis:'Καλοπαναγιώτης',kyperounta:'Κυπερούντα',
+ agros:'Αγρός',lefkara:'Λεύκαρα','pano lefkara':'Πάνω Λεύκαρα',kiti:'Κίτι',pervolia:'Περβόλια',latsi:'Λατσί',latchi:'Λατσί',kathikas:'Κάθικας',tala:'Τάλα',
+ chlorakas:'Χλώρακας',emba:'Έμπα',kissonerga:'Κισσόνεργα',mazotos:'Μαζωτός',zygi:'Ζύγι',parekklisia:'Παρεκκλησιά',moni:'Μονή',akrotiri:'Ακρωτήρι',
+ tersefanou:'Τερσεφάνου',athienou:'Αθηένου',kornos:'Κόρνος',pera:'Πέρα',psimolofou:'Ψημολόφου',tseri2:'Τσέρι',anthoupoli:'Ανθούπολη',pallouriotissa:'Παλλουριώτισσα'};
+const latinKey=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z ]/g,'').trim();
+const grName=(n,lat,lon)=>{ const inCY=lat>=34.4&&lat<=35.8&&lon>=32.2&&lon<=34.7; if(!inCY||/[Α-Ωα-ω]/.test(n)) return n; return CYGR[latinKey(n)]||n; };
+/* ---------- Όνομα για την τρέχουσα θέση (πλησιέστερη πόλη) ---------- */
+const TOWNS=[['Λευκωσία',35.1725,33.365],['Λεμεσός',34.6841,33.0379],['Λάρνακα',34.9229,33.6233],['Πάφος',34.7754,32.4245],['Αμμόχωστος',35.1264,33.9415],
+ ['Αγία Νάπα',34.9823,34.0004],['Πρωταράς',35.0125,34.0583],['Παραλίμνι',35.0373,33.9819],['Πόλις',35.0367,32.4256],['Τρόοδος',34.9411,32.8633],
+ ['Πλάτρες',34.889,32.864],['Κερύνεια',35.3364,33.3172],['Μόρφου',35.1986,32.9931],['Λεύκαρα',34.866,33.307],['Πισσούρι',34.668,32.703],['Πέγεια',34.882,32.383]];
+const kmDist=(a,b,c,d)=>{ const r=Math.PI/180, x=(d-b)*r*Math.cos((a+c)/2*r), y=(c-a)*r; return Math.sqrt(x*x+y*y)*6371; };
+function nearTown(lat,lon){ let best=null; for(const t of TOWNS){ const k=kmDist(lat,lon,t[1],t[2]); if(!best||k<best.k) best={n:t[0],k}; } return best&&best.k<=15?best.n:null; }
+/* ---------- Θάλασσα: πλησιέστερη ακτή όταν είσαι στη στεριά ---------- */
+const COASTS=[['Λάρνακα',34.90,33.66],['Λεμεσός',34.65,33.05],['Πάφος',34.74,32.40],['Αγία Νάπα',34.97,34.01],['Πόλις',35.06,32.41],['Πισσούρι',34.64,32.70],['Ζύγι',34.70,33.35],['Πρωταράς',35.01,34.09],['Πύργος Τηλλυρίας',35.20,32.68]]; // μόνο ακτές των ελεύθερων περιοχών
+/* ---------- Μετονομασία αγαπημένων ---------- */
+let favEdit=-1;
+/* ---------- Αγαπημένες τοποθεσίες ---------- */
+const esc = t => String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let places = store.get('places') || [];
+try{ let ch=false; places.forEach(p=>{ const g=grName(p.name,p.lat,p.lon); if(g!==p.name){ p.name=g; ch=true; } }); if(ch) store.set('places',places); if(place){ const g=grName(place.name,place.lat,place.lon); if(g!==place.name){ place.name=g; store.set('place',place); } } }catch(e){}
+function addPlace(p){
+  p.name=grName(p.name,p.lat,p.lon);
+  if(places.some(x=>Math.abs(x.lat-p.lat)<0.02 && Math.abs(x.lon-p.lon)<0.02)) return;
+  places.unshift(p); places = places.slice(0,8); store.set('places',places); if(NP.on&&NP.favAlerts) pushSync().catch(()=>{});
+}
+function saveFavName(k){
+  const v=($('favName')&&$('favName').value||'').trim(); const p=places[k];
+  if(v && p){ p.name=v.slice(0,40); store.set('places',places); if(place && Math.abs(place.lat-p.lat)<0.02 && Math.abs(place.lon-p.lon)<0.02){ place.name=p.name; store.set('place',place); $('placeName').textContent=p.name; } favAt=0; loadFavs(); if(NP.on) pushSync().catch(()=>{}); }
+  favEdit=-1; renderFavs();
+}
+function renderFavs(){
+  $('favs').innerHTML = places.length ? '<p class="sub" style="color:#9aa7bb;margin-top:8px">Αγαπημένες</p>'+places.map((p,k)=>k===favEdit
+    ? '<div class="fav"><input id="favName" value="'+esc(p.name)+'" maxlength="40" aria-label="Νέο όνομα" style="margin:6px 0"><button class="n" style="flex:0;padding:12px" data-ok="'+k+'" aria-label="Αποθήκευση">✓</button></div>'
+    : '<div class="fav"><button class="n" data-s="'+k+'">⭐ '+esc(p.name)+'</button><button class="n" style="flex:0;padding:12px" data-r="'+k+'" aria-label="Μετονομασία">✎</button><button class="n" style="flex:0;padding:12px" data-x="'+k+'" aria-label="Διαγραφή">✕</button></div>').join('') : '';
+  if(favEdit>=0 && $('favName')){ const i=$('favName'); i.focus(); i.select(); i.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); saveFavName(favEdit); } }; }
+}
+$('favs').onclick = e => {
+  const b = e.target.closest('button'); if(!b) return;
+  if(b.dataset.r!=null){ favEdit=+b.dataset.r; renderFavs(); return; }
+  if(b.dataset.ok!=null){ saveFavName(+b.dataset.ok); return; }
+  if(b.dataset.x!=null){ favEdit=-1; places.splice(+b.dataset.x,1); store.set('places',places); renderFavs(); loadFavs(); if(NP.on&&NP.favAlerts) pushSync().catch(()=>{}); }
+  else if(b.dataset.s!=null){ place=places[+b.dataset.s]; store.set('place',place); if(NP.on) pushSync().catch(()=>{}); $('dlg').close(); load(true); }
+};
 
-    <section class="method panel">
-      <div class="method-icon" aria-hidden="true">✓</div>
-      <div>
-        <h3>Διαφανής βαθμολογία και κατάταξη</h3>
-        <p>Η βαθμολογία είναι μόνο του IMDb, από τα επίσημα ημερήσια αρχεία του. Εμφανίζονται μόνο τίτλοι με τουλάχιστον 6,0/10 από 500+ ψήφους. Η κατάταξη λαμβάνει υπόψη και τον αριθμό ψήφων, ώστε τίτλοι με λίγες ψήφους να μην ανεβαίνουν άδικα.</p>
-      </div>
-    </section>
+/* ---------- Γράφημα 24 ωρών ---------- */
+function chart(d,i0){
+  const h=d.hourly, n=Math.min(i0+24,h.time.length), T=h.temperature_2m.slice(i0,n).map(cv), P=h.precipitation.slice(i0,n);
+  if(T.length<2) return '';
+  const W=340,H=152,L=14,R=14,top=22,base=84,bot=128;
+  const mn=Math.min(...T), mx=Math.max(...T), sp=(mx-mn)||1, pm=Math.max(1,...P), dx=(W-L-R)/(T.length-1);
+  const X=k=>L+k*dx, Y=v=>base-(v-mn)/sp*(base-top);
+  let g='<polyline fill="none" stroke="#fff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" points="'+T.map((v,k)=>X(k).toFixed(1)+','+Y(v).toFixed(1)).join(' ')+'"/>';
+  [[T.indexOf(mx),mx,-8],[T.indexOf(mn),mn,17]].forEach(([k,v,o])=>{ g+='<circle cx="'+X(k).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="3.5" fill="#fff"/><text x="'+X(k).toFixed(1)+'" y="'+(Y(v)+o).toFixed(1)+'" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">'+Math.round(v)+'°</text>'; });
+  P.forEach((v,k)=>{ const bh=v/pm*30; if(bh>0.5) g+='<rect x="'+(X(k)-3).toFixed(1)+'" y="'+(bot-bh).toFixed(1)+'" width="6" height="'+bh.toFixed(1)+'" rx="1.5" fill="#8fd0ff"/>'; });
+  for(let k=0;k<T.length;k+=6) g+='<text x="'+X(k).toFixed(1)+'" y="146" text-anchor="'+(k===0?'start':'middle')+'" fill="rgba(255,255,255,.72)" font-size="11">'+(k===0?'Τώρα':h.time[i0+k].slice(11,13)+':00')+'</text>';
+  const tot=P.reduce((a,b)=>a+(b||0),0);
+  return '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Θερμοκρασία από '+Math.round(mn)+'° έως '+Math.round(mx)+'° τις επόμενες 24 ώρες· συνολική βροχή '+tot.toFixed(1)+' mm">'+g+'</svg><div class="sub" style="font-size:.85rem">Γραμμή: θερμοκρασία · Μπάρες: βροχή (σύνολο '+tot.toFixed(1)+' mm στις επόμενες 24 ώρες)</div>';
+}
 
-    <section class="watchlist-section">
-      <div class="section-head">
-        <div><p class="eyebrow">SAVED FOR LATER</p><h2>Η watchlist μου</h2></div>
-        <span class="count-pill" id="watchCount">0</span>
-      </div>
-      <div class="watch-filters panel">
-        <label for="watchStatusFilter">Κατάσταση</label><select id="watchStatusFilter"><option value="all">Όλες</option><option value="want">Θέλω να δω</option><option value="watched">Το είδα</option><option value="favorite">Αγαπημένα</option></select>
-        <label for="watchGenreFilter">Είδος</label><select id="watchGenreFilter"><option value="all">Όλα τα είδη</option></select>
-        <label for="watchRatingFilter">Ελάχιστη βαθμολογία IMDb</label><select id="watchRatingFilter"><option value="0">Οποιαδήποτε</option><option value="6">6+/10</option><option value="7">7+/10</option><option value="8">8+/10</option><option value="8.5">8,5+/10</option></select>
-      </div>
-      <div id="watchlist" class="results compact-results" aria-label="Η watchlist μου"></div>
-    </section>
-  </main>
+/* ---------- Ποιότητα αέρα και γύρη ---------- */
+let airAt=0, airKey='';
+async function loadAir(){
+  const el=$('air'), key=place.lat+','+place.lon;
+  if(key===airKey && Date.now()-airAt<30*60000) return;
+  try{
+    const r=await fetch('https://air-quality-api.open-meteo.com/v1/air-quality?latitude='+place.lat+'&longitude='+place.lon+'&current=european_aqi,pm10,pm2_5,ozone&hourly=alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=auto&forecast_days=2');
+    if(!r.ok) throw new Error(r.status);
+    const a=await r.json(), c=a.current, q=c.european_aqi;
+    const lv = q==null ? '—' : [[20,'Πολύ καλή'],[40,'Καλή'],[60,'Μέτρια'],[80,'Κακή'],[100,'Πολύ κακή'],[1e9,'Εξαιρετικά κακή']].find(x=>q<=x[0])[1];
+    let i=a.hourly.time.findIndex(t=>t>=c.time.slice(0,13)+':00'); if(i<0) i=0;
+    const nm={alder:'Σκλήθρο',birch:'Σημύδα',grass:'Γρασίδι',mugwort:'Αρτεμισία',olive:'Ελιά',ragweed:'Αμβροσία'};
+    const pol=Object.keys(nm).map(k=>[nm[k],Math.max(0,...(a.hourly[k+'_pollen']||[]).slice(i,i+24).filter(v=>v!=null))]).filter(x=>x[1]>=1);
+    const f=v=>v==null?'—':Math.round(v);
+    airKey=key; airAt=Date.now();
+    el.innerHTML='<b style="font-size:1.2rem">'+(q==null?'—':Math.round(q))+' · '+lv+'</b> <span class="sub">(ευρωπαϊκός δείκτης, 0–100+)</span><br>PM2.5: '+f(c.pm2_5)+' · PM10: '+f(c.pm10)+' · Όζον: '+f(c.ozone)+' µg/m³<br><span class="sub">Γύρη (μέγ. 24 ωρών, κόκκοι/m³): </span>'+(pol.length?pol.map(x=>x[0]+' '+Math.round(x[1])).join(' · '):'<span class="sub">καμία σημαντική ή δεν υπάρχουν δεδομένα (το μοντέλο καλύπτει μόνο Ευρώπη και μόνο στην εποχή της κάθε γύρης).</span>');
+  }catch(e){ el.textContent='Δεν φορτώθηκαν δεδομένα ποιότητας αέρα.'; }
+}
 
-  <nav class="bottom-nav">
-    <button class="nav-item active" data-view="discover" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>Ανακάλυψη</button>
-    <button class="nav-item" data-view="watchlist"><svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg>Watchlist</button>
-    <button class="nav-item" id="navSettings"><svg class="icon" aria-hidden="true"><use href="#i-gear"/></svg>Ρυθμίσεις</button>
-  </nav>
+/* ---------- Ραντάρ βροχής ---------- */
+let rmap,rmark,rlayers=[],rframes=[],ri=0,rtimer=null;
+const loadScript = u => new Promise((ok,no)=>{ const s=document.createElement('script'); s.src=u; s.onload=ok; s.onerror=no; document.head.appendChild(s); });
+function rShow(k){
+  ri=k; rlayers.forEach((l,n)=>l.setOpacity(n===k?.75:0)); $('rslide').value=k;
+  $('rtime').textContent=new Date(rframes[k].time*1000).toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit'});
+}
+function rPlay(on){
+  clearInterval(rtimer); rtimer=null; $('rplay').textContent=on?'⏸':'▶';
+  if(on) rtimer=setInterval(()=>rShow((ri+1)%rframes.length),700);
+}
+function radarMove(){ rmap.setView([place.lat,place.lon]); rmark.setLatLng([place.lat,place.lon]); }
+async function openRadar(){
+  $('radarBtn').hidden=true; $('radarBox').hidden=false;
+  try{
+    const css=document.createElement('link'); css.rel='stylesheet'; css.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'; document.head.appendChild(css);
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js');
+    const j=await (await fetch('https://api.rainviewer.com/public/weather-maps.json')).json();
+    rframes=j.radar.past;
+    rmap=L.map('map',{maxZoom:7}).setView([place.lat,place.lon],6);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:7,attribution:'© OpenStreetMap'}).addTo(rmap);
+    rlayers=rframes.map(f=>L.tileLayer(j.host+f.path+'/256/{z}/{x}/{y}/1/1_1.png',{opacity:0,maxNativeZoom:7,maxZoom:7}).addTo(rmap));
+    rmark=L.circleMarker([place.lat,place.lon],{radius:6,color:'#fff',weight:2,fillColor:'#e53935',fillOpacity:1}).addTo(rmap);
+    $('rslide').max=rframes.length-1; rShow(rframes.length-1); rPlay(true);
+  }catch(e){ rmap=null; $('radarBox').innerHTML='<p class="sub" style="margin-bottom:18px">Το ραντάρ χρειάζεται σύνδεση και δεν φόρτωσε.</p>'; }
+}
+$('radarBtn').onclick = ()=>{ if(!place) return; openRadar(); };
+$('rplay').onclick = ()=>rPlay(!rtimer);
+$('rslide').oninput = e=>{ rPlay(false); rShow(+e.target.value); };
+async function rReload(){
+  try{
+    const j=await (await fetch('https://api.rainviewer.com/public/weather-maps.json')).json();
+    if(j.radar.past.at(-1).time===rframes.at(-1).time) return;
+    rlayers.forEach(l=>rmap.removeLayer(l));
+    rframes=j.radar.past;
+    rlayers=rframes.map(f=>L.tileLayer(j.host+f.path+'/256/{z}/{x}/{y}/1/1_1.png',{opacity:0,maxNativeZoom:7,maxZoom:7}).addTo(rmap));
+    $('rslide').max=rframes.length-1; rShow(rframes.length-1);
+  }catch(e){}
+}
+setInterval(()=>{ if(rmap && !document.hidden) rReload(); }, 10*60000);
 
-  <dialog id="settingsDialog" aria-labelledby="settingsTitle">
-    <form method="dialog" class="dialog-card" id="settingsForm" aria-labelledby="settingsTitle">
-      <div class="dialog-head"><div><p class="eyebrow">PERSONAL SETUP</p><h2 id="settingsTitle">Ρυθμίσεις</h2></div><button class="icon-button" value="cancel" aria-label="Κλείσιμο ρυθμίσεων"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div>
 
-      <fieldset class="settings-group"><legend>Δεδομένα</legend>
-      <p class="help" id="datasetStatus" role="status"></p>
-      <label for="apiKey">TMDB API Read Access Token ή API key</label>
-      <input id="apiKey" type="password" placeholder="Επικόλλησε το δικό σου κλειδί" autocomplete="off">
-      <p class="help">Για περιλήψεις, posters, αναζήτηση και εργαλεία. Αποθηκεύεται μόνο σε αυτή τη συσκευή.</p>
-      <label for="workerProxyUrl">Cloudflare Worker URL (προαιρετικό)</label>
-      <input id="workerProxyUrl" type="url" placeholder="https://your-worker.workers.dev" autocomplete="off">
-      <p class="help">Με τον Worker (<code>worker-api.js</code>) δεν χρειάζεται TMDB key στη συσκευή, και ενεργοποιείται ο συγχρονισμός.</p>
-      </fieldset>
+/* ---------- Περίληψη ---------- */
+function brief(d,i0){
+  const h=d.hourly, n=Math.min(i0+12,h.time.length), c=d.current, out=[];
+  const RAIN=[51,53,55,56,57,61,63,65,66,67,80,81,82], STORM=[95,96,99], SNOW=[71,73,75,77,85,86];
+  const find=f=>{ for(let k=i0;k<n;k++) if(f(k)) return k; return -1; };
+  const hh=k=>h.time[k].slice(11,16);
+  const wet=k=>RAIN.includes(h.weather_code[k]) && (h.precipitation_probability[k]||0)>=40;
+  let k;
+  if((k=find(k=>STORM.includes(h.weather_code[k])))>=0) out.push('Πιθανή καταιγίδα '+(k===i0?'τώρα':'γύρω στις '+hh(k))+'.');
+  else if(RAIN.includes(c.weather_code)){ const e=find(k=>!wet(k)); out.push('Βρέχει τώρα'+(e>0?', μέχρι περίπου τις '+hh(e):'')+' — πάρε ομπρέλα.'); }
+  else if((k=find(wet))>=0) out.push('Βροχή γύρω στις '+hh(k)+' — πάρε ομπρέλα.');
+  else if((k=find(k=>SNOW.includes(h.weather_code[k])))>=0) out.push('Χιόνι γύρω στις '+hh(k)+'.');
+  const T=h.temperature_2m.slice(i0,n), mx=Math.max(...T), mn=Math.min(...T);
+  if(mx>=35) out.push('Ζέστη έως '+R(mx)+'° γύρω στις '+hh(i0+T.indexOf(mx))+' — πιες νερό, απόφυγε τον ήλιο.');
+  else if(mn<=2) out.push('Κρύο έως '+R(mn)+'° — ντύσου ζεστά.');
+  const G=h.wind_gusts_10m.slice(i0,n), gm=Math.max(...G);
+  if(gm>=60) out.push('Ριπές ανέμου έως '+fW(gm)+' γύρω στις '+hh(i0+G.indexOf(gm))+'.');
+  const uv=d.daily.uv_index_max[0]; if(uv>=8 && c.is_day) out.push('Υψηλός δείκτης UV ('+Math.round(uv)+') — αντηλιακό.');
+  const nc=nowcast(d); if(nc) out.unshift(nc);
+  if(!out.length) out.push('Χωρίς ιδιαίτερα καιρικά φαινόμενα τις επόμενες 12 ώρες.');
+  const el=$('brief'); el.textContent=out.slice(0,3).join(' '); el.hidden=false;
+}
 
-      <fieldset class="settings-group"><legend>Συγχρονισμός συσκευών</legend>
-      <label for="syncToken">Κωδικός συγχρονισμού</label>
-      <input id="syncToken" type="password" placeholder="Ίδιος με το secret SYNC_TOKEN του Worker" autocomplete="off">
-      <p class="help">Watchlist και προφίλ συγχρονίζονται μέσω του δικού σου Worker. Βάλε τον ίδιο κωδικό σε κάθε συσκευή.</p>
-      <div class="tool-actions"><button type="button" id="syncNowBtn" class="secondary-button">Συγχρονισμός τώρα</button></div>
-      <p class="help" id="syncStatus" role="status"></p>
-      </fieldset>
+/* ---------- Ήλιος και Σελήνη ---------- */
+const tmin = s => Date.parse(s+'Z')/60000;
+function sunmoon(d){
+  const sr=tmin(d.daily.sunrise[0]), ss=tmin(d.daily.sunset[0]), now=tmin(d.current.time), f=(now-sr)/(ss-sr), dl=ss-sr;
+  let g='<path d="M10,96 H290" stroke="rgba(255,255,255,.35)" stroke-width="1"/><path d="M20,96 A130,78 0 0 1 280,96" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2" stroke-dasharray="4 5"/>';
+  if(f>=0 && f<=1) g+='<circle cx="'+(150-130*Math.cos(Math.PI*f)).toFixed(1)+'" cy="'+(96-78*Math.sin(Math.PI*f)).toFixed(1)+'" r="8" fill="#ffd25a"/>';
+  g+='<text x="20" y="110" fill="rgba(255,255,255,.8)" font-size="12" text-anchor="middle">'+d.daily.sunrise[0].slice(11,16)+'</text><text x="280" y="110" fill="rgba(255,255,255,.8)" font-size="12" text-anchor="middle">'+d.daily.sunset[0].slice(11,16)+'</text>';
+  $('sun').innerHTML='<svg viewBox="0 0 300 116" role="img" aria-label="Πορεία του ήλιου: ανατολή '+d.daily.sunrise[0].slice(11,16)+', δύση '+d.daily.sunset[0].slice(11,16)+'">'+g+'</svg><div class="sub" style="text-align:center;margin-bottom:10px">Διάρκεια ημέρας '+Math.floor(dl/60)+(LANG==='en'?'h ':'ω ')+Math.round(dl%60)+(LANG==='en'?'m':'λ')+'</div><div id="moonbox">Σελήνη: φόρτωση…</div>';
+  loadMoon(d);
+}
 
-      <fieldset class="settings-group"><legend>Μέγεθος γραμμάτων</legend>
-      <div class="segmented" role="radiogroup" aria-label="Μέγεθος γραμμάτων">
-        <label><input type="radio" name="textSize" value="small"><span style="font-size:12px">Μικρά</span></label>
-        <label><input type="radio" name="textSize" value="normal"><span style="font-size:14px">Κανονικά</span></label>
-        <label><input type="radio" name="textSize" value="large"><span style="font-size:16px">Μεγάλα</span></label>
-      </div>
-      <p class="help">Αλλάζει αμέσως, σε όλη την εφαρμογή.</p>
-      </fieldset>
+/* ---------- Σελήνη: μόνο από το Sunrise-Sunset.org (API v2) ---------- */
+const PH={'New Moon':'Νέα σελήνη','Waxing Crescent':'Αύξων μηνίσκος','First Quarter':'Πρώτο τέταρτο','Waxing Gibbous':'Αύξουσα σελήνη','Full Moon':'Πανσέληνος','Waning Gibbous':'Φθίνουσα σελήνη','Last Quarter':'Τελευταίο τέταρτο','Waning Crescent':'Φθίνων μηνίσκος'};
+function moonSvg(ill,wax){
+  const k=Math.min(Math.max(ill/100,0),1), cs=1-2*k, rx=Math.max(.01,22*Math.abs(cs)), limb=wax?1:0, term=wax?(cs>0?0:1):(cs>0?1:0);
+  return '<svg class="moon" width="64" height="64" viewBox="0 0 52 52" aria-hidden="true" style="flex:none"><circle cx="26" cy="26" r="22" fill="rgba(255,255,255,.14)"/><path d="M26,4 A22,22 0 0 '+limb+' 26,48 A'+rx.toFixed(2)+',22 0 0 '+term+' 26,4Z" fill="#f4f0dc"/></svg>';
+}
+function moonHtml(m){
+  const t=v=>v?v.slice(11,16):'δεν συμβαίνει σήμερα', wax=/Waxing|First/.test(m.moon_phase);
+  return '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center">'+moonSvg(m.moon_illumination,wax)+'<div><b>'+(PH[m.moon_phase]||m.moon_phase)+'</b> · '+m.moon_illumination+'%<br>🌙 Ανατολή '+t(m.moonrise)+' · Δύση '+t(m.moonset)+'</div></div><div class="sub" style="font-size:.8rem;margin-top:8px;text-align:center">Δεδομένα σελήνης: <a href="https://sunrise-sunset.org" style="color:#9cc4ff">Sunrise-Sunset.org</a>. Η φάση και το ποσοστό φωτισμού ισχύουν για το μεσημέρι.</div>';
+}
+let moonFailAt=0;
+async function loadMoon(d){
+  const el=$('moonbox'); if(!el) return;
+  const day=d.current.time.slice(0,10), key=day+'|'+place.lat.toFixed(2)+','+place.lon.toFixed(2), c=store.get('moonc');
+  if(c && c.key===key){ el.innerHTML=moonHtml(c.m); return; }
+  if(Date.now()-moonFailAt<10*60000){ el.textContent='Δεν φορτώθηκαν τα δεδομένα σελήνης από το Sunrise-Sunset.org.'; return; }
+  try{
+    const r=await jget('https://api.sunrise-sunset.org/v2?lat='+place.lat.toFixed(4)+'&lng='+place.lon.toFixed(4)+'&date='+day);
+    if(!r.moon_phase) throw new Error('no moon data');
+    const m={moonrise:r.moonrise,moonset:r.moonset,moon_phase:r.moon_phase,moon_illumination:r.moon_illumination};
+    store.set('moonc',{key,m}); el.innerHTML=moonHtml(m);
+  }catch(e){ moonFailAt=Date.now(); el.textContent='Δεν φορτώθηκαν τα δεδομένα σελήνης από το Sunrise-Sunset.org.'; }
+}
 
-      <fieldset class="settings-group"><legend>Λίστες</legend>
-      <label class="check-row"><input id="showAdult" type="checkbox"> Τίτλοι ενηλίκων (18+)</label>
-      <label class="check-row"><input id="includeAnimation" type="checkbox"> Animation (π.χ. Spirited Away, Arcane)</label>
-      </fieldset>
+/* ---------- Θάλασσα ---------- */
+let seaAt=0, seaKey='';
+async function loadSea(){
+  const el=$('sea'), key=place.lat+','+place.lon;
+  if(key===seaKey && Date.now()-seaAt<30*60000) return;
+  const q=(lat,lon)=>jget('https://marine-api.open-meteo.com/v1/marine?latitude='+lat+'&longitude='+lon+'&current=wave_height,wave_period,sea_surface_temperature&hourly=wave_height&forecast_hours=24&timezone=auto');
+  const empty=a=>!a||!a.current||(a.current.wave_height==null&&a.current.sea_surface_temperature==null);
+  try{
+    let a=await q(place.lat,place.lon), where='';
+    if(empty(a) && place.lat>=34.4&&place.lat<=35.8&&place.lon>=32.2&&place.lon<=34.7){
+      const cs=COASTS.map(x=>({n:x[0],lat:x[1],lon:x[2],k:kmDist(place.lat,place.lon,x[1],x[2])})).sort((x,y)=>x.k-y.k).slice(0,3);
+      for(const c of cs){ a=await q(c.lat,c.lon); if(!empty(a)){ where='Πλησιέστερη ακτή: '+c.n+' (περίπου '+Math.round(c.k)+' km)'; break; } }
+    }
+    seaKey=key; seaAt=Date.now();
+    if(empty(a)){ el.textContent='Δεν υπάρχουν θαλάσσια δεδομένα για αυτή την τοποθεσία (πιθανώς μακριά από την ακτή).'; return; }
+    const c=a.current, wh=c.wave_height, lv=wh==null?'—':[[.1,'Ήρεμη'],[.5,'Ελαφρά κυματώδης'],[1.25,'Κυματώδης'],[2.5,'Ταραγμένη'],[4,'Πολύ ταραγμένη'],[1e9,'Φουρτουνιασμένη']].find(x=>wh<x[0])[1];
+    const mx=Math.max(0,...((a.hourly&&a.hourly.wave_height)||[]).filter(v=>v!=null));
+    el.innerHTML=(where?'<div class="sub" style="margin-bottom:6px">'+where+'</div>':'')+'<b style="font-size:1.1rem">'+(wh==null?'—':'Κύμα '+wh.toFixed(1)+' m')+' · '+lv+'</b><br>Νερό: '+(c.sea_surface_temperature==null?'—':R(c.sea_surface_temperature)+'°')+(c.wave_period?' · Περίοδος κύματος: '+Math.round(c.wave_period)+' s':'')+' · Μέγ. ύψος 24ω: '+mx.toFixed(1)+' m<br><span class="sub">Μοντέλο χαμηλής ανάλυσης κοντά στην ακτή. Δεν αντικαθιστά τοπικές προειδοποιήσεις για τη θάλασσα.</span>';
+  }catch(e){ el.textContent='Δεν υπάρχουν ή δεν φορτώθηκαν θαλάσσια δεδομένα για αυτή την τοποθεσία.'; }
+}
 
-      <div class="dialog-actions">
-        <button type="button" id="clearKey" class="secondary-button">Αφαίρεση κλειδιού</button>
-        <button type="submit" class="primary-button">Αποθήκευση</button>
-      </div>
-      <p id="settingsMessage" class="help" role="status"></p>
-    </form>
-  </dialog>
+/* ---------- Αεροδρόμια: METAR (παρατήρηση) / TAF (πρόγνωση) ---------- */
+const LL=(g,e)=>LANG==='en'?e:g;
+const APS=[['LCLK',LL('Λάρνακα','Larnaca'),34.875,33.625],['LCPH',LL('Πάφος','Paphos'),34.718,32.486]];
+const AVTZ='Asia/Nicosia';
+const WXD={MI:['ρηχή','shallow'],BC:['κομμάτια','patches of'],PR:['μερική','partial'],DR:['χαμηλή μεταφορά','low drifting'],BL:['ανεμοφερόμενη','blowing'],FZ:['παγωμένη','freezing']};
+const WXN={DZ:['ψιχάλα','drizzle'],RA:['βροχή','rain'],SN:['χιόνι','snow'],SG:['χιονόκοκκοι','snow grains'],IC:['παγοκρύσταλλοι','ice crystals'],PL:['χαλαζόνερο','ice pellets'],GR:['χαλάζι','hail'],GS:['μικρό χαλάζι','small hail'],UP:['άγνωστος υετός','unknown precipitation'],
+  BR:['αχλή','mist'],FG:['ομίχλη','fog'],FU:['καπνός','smoke'],VA:['ηφαιστειακή τέφρα','volcanic ash'],DU:['σκόνη','dust'],SA:['άμμος','sand'],HZ:['καταχνιά','haze'],PY:['σταγονίδια θάλασσας','spray'],PO:['στρόβιλοι σκόνης','dust whirls'],SQ:['λαίλαπα','squalls'],FC:['χωνοειδές νέφος','funnel cloud'],SS:['αμμοθύελλα','sandstorm'],DS:['θύελλα σκόνης','duststorm']};
+const WXG={RA:'βροχής',SN:'χιονιού',GR:'χαλαζιού',GS:'χαλαζιού',PL:'χαλαζόνερου',DZ:'ψιχάλας'};
+const WXRE=/^(-|\+|VC)?(MI|BC|PR|DR|BL|SH|TS|FZ)?((?:DZ|RA|SN|SG|IC|PL|GR|GS|UP|BR|FG|FU|VA|DU|SA|HZ|PY|PO|SQ|FC|SS|DS)*)$/;
+function wxText(t){
+  const m=WXRE.exec(t); if(!m||(!m[2]&&!m[3])) return null;
+  const ph=(m[3].match(/../g)||[]), en=LANG==='en', nm=c=>WXN[c][en?1:0];
+  let s;
+  if(m[2]==='TS') s=en?'thunderstorm'+(ph.length?' with '+ph.map(nm).join(' and '):''):'καταιγίδα'+(ph.length?' με '+ph.map(nm).join(' και '):'');
+  else if(m[2]==='SH') s=en?ph.map(nm).join(' and ')+' showers':'μπόρες'+(ph.length?' '+ph.map(c=>WXG[c]||nm(c)).join(' και '):'');
+  else s=(m[2]?WXD[m[2]][en?1:0]+' ':'')+ph.map(nm).join(en?' and ':' και ');
+  if(m[1]==='-') s+=LL(' ασθενούς έντασης',' (light)'); else if(m[1]==='+') s+=LL(' ισχυρής έντασης',' (heavy)'); else if(m[1]==='VC') s+=LL(' στην περιοχή',' nearby');
+  const f={ts:m[2]==='TS',heavy:m[1]==='+',dust:ph.some(c=>/DU|SA|SS|DS|PO/.test(c)),fog:ph.includes('FG'),hail:ph.some(c=>c==='GR'||c==='GS')};
+  return {s:s.charAt(0).toUpperCase()+s.slice(1),f};
+}
+const CLC={FEW:['λίγα σύννεφα','few clouds'],SCT:['σκόρπια σύννεφα','scattered clouds'],BKN:['αρκετά σύννεφα','broken clouds'],OVC:['συννεφιά','overcast']};
+const kmhKt=k=>k*1.852;
+const cmp8=d=>(LANG==='en'?['N','NE','E','SE','S','SW','W','NW']:['Β','ΒΑ','Α','ΝΑ','Ν','ΝΔ','Δ','ΒΔ'])[Math.round(d/45)%8];
+const mFt=ft=>{ const m=ft*0.3048; return (m<1000?Math.round(m/10)*10:Math.round(m/50)*50).toLocaleString(LOC)+' m'; };
+// Αποκωδικοποίηση μιας σειράς λέξεων (κύριο σώμα METAR ή ομάδα TAF)
+function avDecode(toks){
+  const o={wx:[],cl:[],f:{}}; let gk=0;
+  for(const t of toks){
+    let m;
+    if(t==='CAVOK'){ o.vis=LL('CAVOK: ορατότητα 10 km+, χωρίς σημαντικά σύννεφα και φαινόμενα','CAVOK: visibility 10 km+, no significant cloud or weather'); o.cavok=1; continue; }
+    if((m=/^(\d{3}|VRB)(\d{2,3})(?:G(\d{2,3}))?(KT|MPS)$/.exec(t))){
+      const k=v=>m[4]==='KT'?kmhKt(+v):(+v)*3.6, sp=k(m[2]); gk=m[3]?+m[3]*(m[4]==='KT'?1:1.944):0;
+      o.wind=sp<1?LL('Άπνοια','Calm'):LL('Άνεμος ','Wind ')+(m[1]==='VRB'?LL('μεταβλητός','variable'):cmp8(+m[1]))+' '+fW(sp)+(m[3]?LL(' (ριπές ',' (gusts ')+fW(k(m[3]))+')':'');
+      if(gk>=25||m[2]*(m[4]==='KT'?1:1.944)>=25) o.f.wind=1; continue; }
+    if(/^\d{3}V\d{3}$/.test(t)) continue;
+    if((m=/^(\d{4})(NDV)?$/.exec(t))){ const v=+m[1]; o.vis=LL('Ορατότητα ','Visibility ')+(v>=9999?LL('10 km ή περισσότερο','10 km or more'):v>=5000?Math.round(v/1000)+' km':v.toLocaleString(LOC)+' m'); if(v<1500) o.f.vis=1; continue; }
+    if((m=/^(FEW|SCT|BKN|OVC)(\d{3}|\/\/\/)(CB|TCU|\/\/\/)?$/.exec(t))){
+      let s=CLC[m[1]][LANG==='en'?1:0]+(m[2]!=='///'?LL(' στα ',' at ')+mFt(+m[2]*100):'');
+      if(m[3]==='CB'){ s+=LL(' — σωρειτομελανίες (σύννεφα καταιγίδας)',' — cumulonimbus (thunderstorm clouds)'); o.f.cb=1; }
+      else if(m[3]==='TCU') s+=LL(' — πυργωμένοι σωρείτες',' — towering cumulus');
+      o.cl.push(s.charAt(0).toUpperCase()+s.slice(1)); continue; }
+    if((m=/^VV(\d{3}|\/\/\/)$/.exec(t))){ o.cl.push(LL('Ο ουρανός δεν φαίνεται','Sky obscured')+(m[1]!=='///'?LL(' (κατακόρυφη ορατότητα ',' (vertical visibility ')+mFt(+m[1]*100)+')':'')); o.f.vis=1; continue; }
+    if(t==='NSC'||t==='NCD'||t==='SKC'||t==='CLR'){ o.cl.push(t==='NSC'?LL('Χωρίς σημαντικά σύννεφα','No significant cloud'):LL('Χωρίς σύννεφα','No cloud')); continue; }
+    if(t==='NSW'){ o.wx.push(LL('Τέλος σημαντικών φαινομένων','No significant weather')); continue; }
+    if((m=/^(M?\d{2})\/(M?\d{2})?$/.exec(t))){ const n=v=>v.startsWith('M')?-(+v.slice(1)):+v; o.t=n(m[1]); if(m[2]) o.td=n(m[2]); continue; }
+    if((m=/^Q(\d{4})$/.exec(t))){ o.q=+m[1]; continue; }
+    if((m=/^A(\d{4})$/.exec(t))){ o.q=Math.round(+m[1]/100*33.8639); continue; }
+    if((m=/^T([XN])(M?\d{2})\/(\d{4})Z$/.exec(t))){ (o.tx=o.tx||[]).push([m[1],m[2].startsWith('M')?-(+m[2].slice(1)):+m[2],m[3]]); continue; }
+    const w=wxText(t); if(w){ o.wx.push(w.s); Object.assign(o.f,Object.fromEntries(Object.entries(w.f).filter(x=>x[1]))); }
+  }
+  return o;
+}
+// Ώρα από ημέρα/ώρα UTC, κοντά σε μια ημερομηνία αναφοράς (για αλλαγή μήνα)
+function avTime(day,hr,min,ref){
+  const r=new Date(ref); let d=new Date(Date.UTC(r.getUTCFullYear(),r.getUTCMonth(),+day,+hr,+(min||0)));
+  if(d-r>15*864e5) d=new Date(Date.UTC(r.getUTCFullYear(),r.getUTCMonth()-1,+day,+hr,+(min||0)));
+  else if(r-d>15*864e5) d=new Date(Date.UTC(r.getUTCFullYear(),r.getUTCMonth()+1,+day,+hr,+(min||0)));
+  return d;
+}
+const avHM=d=>d.toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:AVTZ});
+const avDay=d=>d.toLocaleDateString(LOC,{weekday:'short',timeZone:AVTZ});
+function avSpan(g,now){ if(g.from<now) return LL('Τώρα','Now')+(g.to?' – '+(avDay(g.to)!==avDay(new Date(now))?avDay(g.to)+' ':'')+avHM(g.to):''); return g.type==='FM'?avRange(g.from):avRange(g.from,g.to); }
+function avRange(a,b){ return avDay(a)+' '+avHM(a)+(b?' – '+(avDay(b)!==avDay(a)?avDay(b)+' ':'')+avHM(b):''); }
+// Χωρίζει ένα κείμενο σε αναφορές ανά σταθμό
+function avSplit(txt,re){
+  const s=String(txt||'').replace(/\s+/g,' '), out=[]; let m, idx=[];
+  while((m=re.exec(s))) idx.push(m.index);
+  idx.forEach((p,k)=>{ const seg=s.slice(p,k+1<idx.length?idx[k+1]:s.length).replace(/\b(METAR|SPECI|TAF|AMD|COR)\s*$/,'').replace(/\b(METAR|SPECI|TAF|AMD|COR)\s*$/,'').replace(/=\s*$/,'').trim(); out.push(seg); });
+  return out;
+}
+function parseMetar(raw,now){
+  const toks=raw.split(' '), m=/^(\d{2})(\d{2})(\d{2})Z$/.exec(toks[1]||''); if(!m) return null;
+  const at=avTime(m[1],m[2],m[3],now); let body=[], trend=null, i=2;
+  for(;i<toks.length;i++){ const t=toks[i]; if(t==='RMK') break; if(t==='NOSIG'||t==='BECMG'||t==='TEMPO'){ trend=toks.slice(i,toks.indexOf('RMK')>i?toks.indexOf('RMK'):toks.length); break; } if(t!=='AUTO'&&t!=='COR') body.push(t); }
+  return {id:toks[0],at,raw,o:avDecode(body),trend};
+}
+function parseTaf(raw){
+  const toks=raw.split(' '), m=/^(\d{2})(\d{2})(\d{2})Z$/.exec(toks[1]||''), v=/^(\d{2})(\d{2})\/(\d{2})(\d{2})$/.exec(toks[2]||''); if(!m||!v) return null;
+  const iss=avTime(m[1],m[2],m[3],Date.now()), P=(d,h)=>avTime(d,h,0,iss);
+  const G=[]; let cur={type:'BASE',from:P(v[1],v[2]),to:P(v[3],v[4]),toks:[]}, i=3;
+  const push=()=>{ if(cur) G.push(cur); };
+  for(;i<toks.length;i++){
+    const t=toks[i]; let x;
+    if((x=/^FM(\d{2})(\d{2})(\d{2})$/.exec(t))){ push(); cur={type:'FM',from:avTime(x[1],x[2],x[3],iss),toks:[]}; continue; }
+    if((x=/^PROB(\d{2})$/.exec(t))){ push(); cur={type:'PROB',prob:+x[1],toks:[]}; if(toks[i+1]==='TEMPO'){ cur.tempo=1; i++; } continue; }
+    if(t==='BECMG'||t==='TEMPO'){ push(); cur={type:t,toks:[]}; continue; }
+    if((x=/^(\d{2})(\d{2})\/(\d{2})(\d{2})$/.exec(t)) && cur.type!=='BASE' && !cur.from){ cur.from=P(x[1],x[2]); cur.to=P(x[3],x[4]); continue; }
+    cur.toks.push(t);
+  }
+  push();
+  const end=P(v[3],v[4]);
+  // FM: ισχύει μέχρι την επόμενη FM ή το τέλος της TAF
+  G.forEach((g,k)=>{ if(g.type==='FM'){ const nx=G.slice(k+1).find(y=>y.type==='FM'); g.to=nx?nx.from:end; } });
+  const base=G.find(g=>g.type==='BASE'), fm1=G.find(g=>g.type==='FM'); if(base&&fm1) base.to=fm1.from;
+  G.forEach(g=>g.o=avDecode(g.toks));
+  return {id:toks[0],iss,from:P(v[1],v[2]),to:end,raw,G};
+}
+const avBad=f=>f.ts||f.cb||f.heavy||f.dust||f.fog||f.hail||f.wind||f.vis;
+function avLine(o){
+  const a=[]; if(o.wind) a.push(o.wind); if(o.vis) a.push(o.vis); a.push(...o.wx); if(!o.cavok) a.push(...o.cl);
+  return a.map(esc).join(' · ');
+}
+let avAt=0, avData=null;
+async function loadAvwx(){
+  const el=$('avwx');
+  try{
+    if(!avData||Date.now()-avAt>10*60000){ avData=await jget('/api/avwx'); avAt=Date.now(); }
+    const now=Date.now(), M=avSplit(avData.metar,/\b(LCLK|LCPH) \d{6}Z\b/g).map(r=>parseMetar(r,now)).filter(Boolean), T=avSplit(avData.taf,/\b(LCLK|LCPH) \d{6}Z \d{4}\/\d{4}\b/g).map(parseTaf).filter(Boolean);
+    const ord=APS.map(a=>({a,k:kmDist(place.lat,place.lon,a[2],a[3])})).sort((x,y)=>x.k-y.k);
+    el.innerHTML=ord.map(({a,k},n)=>{
+      const [id,name]=a, me=M.filter(x=>x.id===id).sort((x,y)=>y.at-x.at)[0], tf=T.filter(x=>x.id===id).sort((x,y)=>y.iss-x.iss)[0];
+      let h='<div class="ap"><div class="aph"><b>'+esc(name)+'</b> <span class="sub">'+id+(n===0&&k<150?LL(' · πλησιέστερο ('+Math.round(k)+' km)',' · nearest ('+Math.round(k)+' km)'):'')+'</span></div>';
+      if(me){
+        const o=me.o, age=Math.round((now-me.at)/60000);
+        h+='<div class="sub">'+LL('Παρατήρηση ','Observed ')+avHM(me.at)+' ('+(age<60?LL('πριν '+age+' λεπτά',age+' min ago'):LL('πριν '+Math.floor(age/60)+' ώ. '+(age%60)+' λ.',Math.floor(age/60)+' h '+(age%60)+' min ago'))+')'+(age>90?' <span style="color:#ffb347">'+LL('— παλιά παρατήρηση','— old observation')+'</span>':'')+'</div>';
+        h+='<div class="apm">'+(o.t!=null?'<span class="apt">'+R(o.t)+'°</span>':'')+'<span>'+(o.td!=null?LL('Σημείο δρόσου ','Dew point ')+R(o.td)+'°':'')+(o.t!=null&&o.td!=null?LL(' · Υγρασία ',' · Humidity ')+Math.round(100*Math.exp(17.625*o.td/(243.04+o.td))/Math.exp(17.625*o.t/(243.04+o.t)))+'%':'')+(o.q?' · QNH '+o.q+' hPa':'')+'</span></div>';
+        h+='<div>'+(avLine(o)||'—')+(o.cavok?'':'')+'</div>';
+        if(me.trend){ const tr=me.trend; h+='<div class="sub">'+(tr[0]==='NOSIG'?LL('Τάση 2 ωρών: χωρίς σημαντική αλλαγή','2-hour trend: no significant change'):LL('Τάση 2 ωρών','2-hour trend')+(tr[0]==='TEMPO'?LL(' (προσωρινά): ',' (temporarily): '):LL(' (αλλαγή): ',' (becoming): '))+avLine(avDecode(tr.slice(1).filter(t=>!/^(FM|TL|AT)\d{4}$/.test(t)))))+'</div>'; }
+      } else h+='<div class="sub">'+LL('Δεν υπάρχει πρόσφατη παρατήρηση.','No recent observation.')+'</div>';
+      if(tf){
+        const live=tf.G.filter(g=>!g.to||g.to>now);
+        const bad=live.filter(g=>g.type!=='BASE'&&avBad(g.o.f)||g.type==='BASE'&&avBad(g.o.f));
+        h+='<div class="tafh">'+LL('Πρόγνωση αεροδρομίου (TAF) · ','Airport forecast (TAF) · ')+avRange(tf.from,tf.to)+'</div>';
+        if(bad.length){ h+='<div class="tg hz">⚠️ '+bad.map(g=>{ const f=g.o.f, w=[]; if(f.ts||f.cb) w.push(LL('καταιγίδες','thunderstorms')); if(f.hail) w.push(LL('χαλάζι','hail')); if(f.wind) w.push(LL('δυνατός άνεμος','strong wind')); if(f.dust) w.push(LL('σκόνη/άμμος','dust/sand')); if(f.fog||f.vis) w.push(LL('χαμηλή ορατότητα','low visibility')); if(f.heavy&&!w.length) w.push(LL('ισχυρά φαινόμενα','heavy weather')); return '<b>'+w.join(', ')+'</b> '+(g.prob?LL('(πιθανότητα '+g.prob+'%) ','('+g.prob+'% chance) '):g.type==='TEMPO'?LL('(προσωρινά) ','(temporarily) '):'')+avSpan(g,now); }).join('<br>')+'</div>'; }
+        h+=live.map(g=>{
+          const lab=g.type==='BASE'?LL('Αρχικά','Initially'):g.type==='FM'?LL('Από','From'):g.type==='BECMG'?LL('Σταδιακή αλλαγή','Becoming'):g.type==='TEMPO'?LL('Προσωρινά','Temporarily'):LL('Πιθανότητα '+g.prob+'%','Probability '+g.prob+'%')+(g.tempo?LL(', προσωρινά',', temporarily'):'');
+          const tx=(g.o.tx||[]).map(x=>(x[0]==='X'?LL('Μέγιστη ','Max '):LL('Ελάχιστη ','Min '))+R(x[1])+'° ('+avRange(avTime(x[2].slice(0,2),x[2].slice(2),0,tf.iss))+')').join(' · ');
+          const body=avLine(g.o)+(tx?(avLine(g.o)?' · ':'')+tx:'');
+          return '<div class="tg'+(avBad(g.o.f)?' hz':'')+'"><span class="sub">'+lab+' · '+avSpan(g,now)+'</span><br>'+(body||LL('Χωρίς αλλαγή στα υπόλοιπα','No other change'))+'</div>';
+        }).join('');
+      } else h+='<div class="sub" style="margin-top:6px">'+LL('Δεν βρέθηκε ενεργή πρόγνωση TAF.','No active TAF found.')+'</div>';
+      h+='<details class="raw"><summary>'+LL('Αρχικό κείμενο','Raw text')+'</summary><code>'+esc(me?me.raw:'—')+'\n\n'+esc(tf?tf.raw.replace(/ (FM\d{6}|BECMG|TEMPO|PROB\d{2})/g,'\n  $1'):'—')+'</code></details></div>';
+      return h;
+    }).join('')+'<p class="sub" style="font-size:.78rem;margin:8px 0 0">'+LL('METAR: πραγματικές μετρήσεις των σταθμών των αεροδρομίων (ανά 30 λεπτά). TAF: η επίσημη πρόγνωση για το αεροδρόμιο (ακτίνα ~8 km). Ώρες Κύπρου. Πηγή: NOAA Aviation Weather Center. Όχι για αεροπορική χρήση.','METAR: real measurements at the airport stations (every 30 min). TAF: the official forecast for the airport (~8 km radius). Cyprus time. Source: NOAA Aviation Weather Center. Not for aviation use.')+'</p>';
+  }catch(e){ el.textContent=LL('Δεν φορτώθηκαν τα δεδομένα των αεροδρομίων. Δοκίμασε ξανά αργότερα.','Airport data did not load. Try again later.'); }
+}
 
-  <dialog id="detailsDialog" class="details-dialog" aria-labelledby="detailTitle">
-    <div class="dialog-card details-card">
-      <div class="dialog-head"><div><p class="eyebrow">SCREENSCORE DETAILS</p><h2 id="detailTitle">Λεπτομέρειες</h2></div><button type="button" class="icon-button" id="closeDetails" aria-label="Κλείσιμο λεπτομερειών"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div>
-      <div class="detail-layout">
-        <div class="detail-poster-wrap"><img id="detailPoster" class="detail-poster" alt="Αφίσα"></div>
-        <div class="detail-info"><p id="detailMeta" class="detail-meta"></p><p id="detailGenres" class="genres"></p><div id="detailRatings" class="detail-ratings"></div></div>
-      </div>
-      <p id="detailOverview" class="detail-overview"></p>
-      <div class="detail-source-buttons"><a id="detailTmdbBtn" class="primary-button source-button" target="_blank" rel="noopener noreferrer">Άνοιγμα στο TMDB ↗</a><a id="detailImdbBtn" class="secondary-button source-button" target="_blank" rel="noopener noreferrer">Άνοιγμα στο IMDb ↗</a></div>
-      <div id="detailExtra" class="detail-extra"></div>
-      <div class="tool-actions"><button type="button" id="detailShareBtn" class="secondary-button"><svg class="icon" aria-hidden="true"><use href="#i-share"/></svg><span>Κοινοποίηση</span></button></div>
-      <div id="detailRankingInfo" class="ranking-explanation"></div>
-      <div id="detailStreaming" class="ranking-explanation"><strong>Netflix / Cinobo στην Κύπρο</strong><br>Φόρτωση διαθέσιμων υπηρεσιών…</div>
-      <p class="help">Η βαθμολογία είναι μόνο του IMDb (επίσημα ημερήσια αρχεία). Περιλήψεις, posters, trailer και streaming προέρχονται από το TMDB.</p>
-    </div>
-  </dialog>
+/* ---------- Αβεβαιότητα πρόγνωσης (σύγκριση μοντέλων) ---------- */
+let uncAt=0, uncKey='';
+async function loadUnc(){
+  const el=$('unc'), key=place.lat+','+place.lon;
+  if(key===uncKey && Date.now()-uncAt<30*60000) return;
+  try{
+    const M=['ecmwf_ifs025','gfs_seamless','icon_seamless'];
+    const a=await jget('https://api.open-meteo.com/v1/forecast?latitude='+place.lat+'&longitude='+place.lon+'&daily=temperature_2m_max,precipitation_sum&models='+M.join(',')+'&timezone=auto&forecast_days=7');
+    const COL={'Υψηλή':'#8ff0b0','Μέτρια':'#ffd966','Χαμηλή':'#ff9b8f'};
+    const rows=a.daily.time.map((day,k)=>{
+      const col=v=>M.map(m=>a.daily[v+'_'+m]&&a.daily[v+'_'+m][k]).filter(x=>x!=null);
+      const T=col('temperature_2m_max'), P=col('precipitation_sum'); if(T.length<2||!P.length) return '';
+      const t0=Math.min(...T), t1=Math.max(...T), p0=Math.min(...P), p1=Math.max(...P), r0=Math.round(p0), r1=Math.round(p1);
+      const conf=(t1-t0)<=2&&(p1-p0)<=2?'Υψηλή':(t1-t0)<=4&&(p1-p0)<=6?'Μέτρια':'Χαμηλή';
+      const name=k===0?'Σήμερα':new Date(day+'T12:00').toLocaleDateString(LOC,{weekday:'short'});
+      return '<div class="u"><span><b>'+name+'</b></span><span>'+(R(t0)===R(t1)?R(t0):R(t0)+'–'+R(t1))+'°</span><span>'+(p1<0.3?'ξηρό':(r0===r1?r1:r0+'–'+r1)+' mm')+'</span><span style="color:'+COL[conf]+'">'+conf+'</span></div>';
+    }).join('');
+    uncKey=key; uncAt=Date.now();
+    el.innerHTML='<div class="u" style="color:var(--soft);font-size:.8rem"><span>Ημέρα</span><span>Μέγιστη</span><span>Βροχή</span><span>Συμφωνία</span></div>'+rows+'<p class="sub" style="font-size:.8rem;margin-top:8px">Σύγκριση τριών μοντέλων (ECMWF, GFS, ICON). Μεγάλη διαφορά σημαίνει πιο αβέβαιη πρόγνωση. Δεν είναι επίσημη πιθανότητα.</p>';
+  }catch(e){ el.textContent='Δεν φορτώθηκε η σύγκριση μοντέλων.'; }
+}
 
-  <template id="cardTemplate">
-    <article class="movie-card">
-      <div class="poster-wrap"><img class="poster" alt="" loading="lazy"><span class="type-tag"></span></div>
-      <div class="card-body">
-        <div class="card-topline"><span class="year"></span><span class="votes"></span></div>
-        <div class="movie-title-row"><span class="rank-number" hidden></span><h3 class="movie-title"></h3></div>
-        <p class="genres"></p>
-        <div class="rating-line"><span class="rating-score"></span><span class="rating-label">Βαθμολογίες ανά πηγή</span></div>
-        <div class="confidence-line"></div>
-        <p class="overview"></p>
-        <div class="card-actions"><a class="details-link" target="_blank" rel="noopener noreferrer">Πηγή & λεπτομέρειες ↗</a><button class="save-button">♡ Watchlist</button></div>
-      </div>
-    </article>
-  </template>
+/* ---------- Ρυθμίσεις ---------- */
+$('gear').onclick=()=>{ $('s_t').value=U.t; $('s_w').value=U.w; $('sdlg').showModal(); };
+$('sClose').onclick=()=>$('sdlg').close();
+$('s_t').onchange=$('s_w').onchange=()=>{ U={t:$('s_t').value,w:$('s_w').value}; store.set('units',U); uncAt=0; seaAt=0; load(false); };
 
-  <script type="module" src="main.js"></script>
+/* ---------- Animation φόντου (βροχή / χιόνι) ---------- */
+let fxk='', fxraf=0;
+function fx(){
+  const sky=document.body.dataset.sky, kind=(sky==='rain'||sky==='storm')?'rain':sky==='snow'?'snow':'';
+  if(kind===fxk) return; fxk=kind; cancelAnimationFrame(fxraf);
+  const cn=$('fx'), g=cn.getContext('2d'), dpr=Math.min(devicePixelRatio||1,2);
+  const size=()=>{ cn.width=Math.round(innerWidth*dpr); cn.height=Math.round(innerHeight*dpr); };
+  size(); g.clearRect(0,0,cn.width,cn.height);
+  if(!kind || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const P=[...Array(kind==='rain'?70:55)].map(()=>({x:Math.random(),y:Math.random(),s:.4+Math.random()*.9}));
+  const step=()=>{
+    if(!document.hidden){
+      if(cn.width!==Math.round(innerWidth*dpr)) size();
+      const W=cn.width, H=cn.height;
+      g.clearRect(0,0,W,H); g.strokeStyle='rgba(255,255,255,.32)'; g.fillStyle='rgba(255,255,255,.65)'; g.lineWidth=1.2*dpr;
+      for(const p of P){
+        if(kind==='rain'){ p.y+=p.s*.018; p.x-=p.s*.004; g.beginPath(); g.moveTo(p.x*W,p.y*H); g.lineTo(p.x*W-6*dpr*p.s,p.y*H+16*dpr*p.s); g.stroke(); }
+        else { p.y+=p.s*.0035; p.x+=Math.sin(p.y*12)*.0006; g.beginPath(); g.arc(p.x*W,p.y*H,(1.2+p.s*1.5)*dpr,0,6.283); g.fill(); }
+        if(p.y>1){ p.y=-.05; p.x=Math.random(); } if(p.x<0) p.x=1;
+      }
+    }
+    fxraf=requestAnimationFrame(step);
+  };
+  step();
+}
+
+/* ---------- Pull-to-refresh και splash ---------- */
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>{ if(!e.target.closest || !e.target.closest('#map')) e.preventDefault(); }));
+let py=0, pd=0;
+addEventListener('touchstart',e=>{ py=(scrollY<=0 && !e.target.closest('#map,dialog,.hours'))?e.touches[0].clientY:0; pd=0; },{passive:true});
+addEventListener('touchmove',e=>{
+  if(!py) return; pd=e.touches[0].clientY-py; const p=$('ptr');
+  if(pd>10){ p.classList.add('on'); p.textContent=pd>80?'Άφησε για ανανέωση':'↓ Τράβα για ανανέωση'; p.style.transform='translate(-50%,'+Math.min(pd/2,50)+'px)'; }
+},{passive:true});
+addEventListener('touchend',()=>{ const p=$('ptr'); p.style.transform='translate(-50%,-160px)'; p.classList.remove('on'); if(py && pd>80 && place) load(true); py=0; pd=0; });
+function hideSplash(){ const s=$('splash'); if(s){ s.classList.add('off'); setTimeout(()=>s.remove(),500); } }
+setTimeout(hideSplash,3500);
+
+
+/* ---------- Αγαπημένες: σύνοψη ---------- */
+let favAt=0, favKey='';
+async function loadFavs(){
+  const box=$('favsum');
+  if(!places.length){ box.hidden=true; return; }
+  const key=places.map(p=>p.lat+','+p.lon).join(';');
+  if(key===favKey && Date.now()-favAt<10*60000) return;
+  box.hidden=false;
+  try{
+    const r=await jget('https://api.open-meteo.com/v1/forecast?latitude='+places.map(p=>p.lat).join(',')+'&longitude='+places.map(p=>p.lon).join(',')+'&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1');
+    const a=[].concat(r); favKey=key; favAt=Date.now();
+    $('favlist').innerHTML=places.map((p,k)=>{ const x=a[k]; if(!x||!x.current) return '';
+      return '<button class="fv" data-f="'+k+'"><b>'+esc(p.name)+'</b>'+icon(x.current.weather_code,x.current.is_day,22)+'<b>'+R(x.current.temperature_2m)+'°</b><span class="sub">'+R(x.daily.temperature_2m_max[0])+'° / '+R(x.daily.temperature_2m_min[0])+'°</span></button>'; }).join('');
+  }catch(e){ $('favlist').textContent='Δεν φορτώθηκαν οι αγαπημένες τοποθεσίες.'; }
+}
+$('favlist').onclick=e=>{ const b=e.target.closest('[data-f]'); if(!b) return; place=places[+b.dataset.f]; store.set('place',place); if(NP.on) pushSync().catch(()=>{}); load(true); scrollTo(0,0); };
+
+/* ---------- UV και καλύτερη ώρα για έξοδο ---------- */
+function outdoor(d,i0){
+  const h=d.hourly, n=Math.min(i0+24,h.time.length), uv=h.uv_index||[], el=$('outdoor');
+  if(!uv.length){ el.textContent='—'; return; }
+  const N=n-i0, step=328/N, bw=step*.75, base=88;
+  const col=u=>u<3?'#8ff0b0':u<6?'#ffd966':u<8?'#ffa94d':u<11?'#ff6b6b':'#c77dff';
+  const hr1=k=>h.time[k].slice(11,13)+':00', hrEnd=k=>('0'+((+h.time[k].slice(11,13)+1)%24)).slice(-2)+':00';
+  let g='';
+  for(let k=i0;k<n;k++){
+    const u=uv[k]||0, ht=Math.max(1.5,Math.min(u,12)/12*70), x=6+(k-i0)*step, hr=+h.time[k].slice(11,13);
+    g+='<rect x="'+x.toFixed(1)+'" y="'+(base-ht).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+ht.toFixed(1)+'" rx="1.5" fill="'+col(u)+'"/>';
+    if(k===i0 || (hr%6===0 && k-i0>=3)) g+='<text x="'+x.toFixed(1)+'" y="104" fill="rgba(255,255,255,.72)" font-size="11">'+(k===i0?'Τώρα':('0'+hr).slice(-2)+':00')+'</text>';
+  }
+  let best=null, run=null;
+  for(let k=i0;k<=n;k++){
+    const u=k<n?(uv[k]||0):0;
+    if(u>=3){ if(!run) run={s:k,e:k,m:u}; else{ run.e=k; run.m=Math.max(run.m,u); } }
+    else if(run){ if(!best||run.m>best.m) best=run; run=null; }
+  }
+  const sun=best ? 'Αντηλιακό: '+hr1(best.s)+'–'+hrEnd(best.e)+' (UV έως '+Math.round(best.m)+')' : 'Δεν χρειάζεται αντηλιακό τις επόμενες 24 ώρες (UV &lt; 3).';
+  const ok=k=>h.is_day[k] && h.temperature_2m[k]>=15 && h.temperature_2m[k]<=27 && (uv[k]||0)<6 && (h.precipitation_probability[k]||0)<30 && (h.precipitation[k]||0)<0.2 && h.wind_gusts_10m[k]<35;
+  let bwin=null; run=null;
+  for(let k=i0;k<=n;k++){
+    if(k<n && ok(k)){ if(!run) run={s:k,e:k}; else run.e=k; }
+    else if(run){ if(!bwin||(run.e-run.s)>(bwin.e-bwin.s)) bwin=run; run=null; }
+  }
+  let win='Δεν υπάρχει ώρα που να πληροί όλα τα κριτήρια.';
+  if(bwin){ const T=h.temperature_2m.slice(bwin.s,bwin.e+1), U2=uv.slice(bwin.s,bwin.e+1).map(x=>x||0);
+    win='Καλύτερο παράθυρο για έξοδο: '+hr1(bwin.s)+'–'+hrEnd(bwin.e)+' · '+R(Math.min(...T))+'–'+R(Math.max(...T))+'° (UV έως '+Math.round(Math.max(...U2))+')'; }
+  el.innerHTML='<svg viewBox="0 0 340 110" role="img" aria-label="UV ανά ώρα· μέγιστο '+Math.round(Math.max(0,...uv.slice(i0,n).map(x=>x||0)))+'">'+g+'</svg><div style="margin-top:6px"><b>'+sun+'</b></div><div style="margin-top:6px"><b>'+win+'</b></div><div class="sub" style="font-size:.8rem;margin-top:8px">Κριτήρια: ημέρα, θερμοκρασία '+R(15)+'–'+R(27)+'°, UV &lt; 6, πιθανότητα βροχής &lt; 30%, ριπές &lt; '+fW(35)+'. Ενδεικτικά, δικά μου κριτήρια.</div>';
+}
+
+/* ---------- Σύγκριση με χθες ---------- */
+function histSvg(D){
+  const n=D.time.length, hi=D.temperature_2m_max.map(cv), lo=D.temperature_2m_min.map(cv);
+  const mn=Math.min(...lo), mx=Math.max(...hi), sp=(mx-mn)||1, X=k=>14+k*312/(n-1), Y=v=>100-(v-mn)/sp*76;
+  const pl=a=>a.map((v,k)=>X(k).toFixed(1)+','+Y(v).toFixed(1)).join(' ');
+  let g='<polyline fill="none" stroke="#fff" stroke-width="2.5" stroke-linejoin="round" points="'+pl(hi)+'"/><polyline fill="none" stroke="#8fd0ff" stroke-width="2.5" stroke-linejoin="round" points="'+pl(lo)+'"/>';
+  for(let k=0;k<n;k++){
+    const t=k===n-1, x=X(k).toFixed(1);
+    g+='<circle cx="'+x+'" cy="'+Y(hi[k]).toFixed(1)+'" r="'+(t?4.5:3)+'" fill="#fff"/><circle cx="'+x+'" cy="'+Y(lo[k]).toFixed(1)+'" r="'+(t?4.5:3)+'" fill="#8fd0ff"/>'+
+      '<text x="'+x+'" y="'+(Y(hi[k])-8).toFixed(1)+'" text-anchor="middle" fill="#fff" font-size="10">'+Math.round(hi[k])+'°</text>'+
+      '<text x="'+x+'" y="'+(Y(lo[k])+16).toFixed(1)+'" text-anchor="middle" fill="#cfe9ff" font-size="10">'+Math.round(lo[k])+'°</text>'+
+      '<text x="'+(t?(X(k)+8).toFixed(1):x)+'" y="136" text-anchor="'+(t?'end':'middle')+'" fill="rgba(255,255,255,.72)" font-size="11">'+(t?'Σήμερα':new Date(D.time[k]+'T12:00').toLocaleDateString(LOC,{weekday:'short'}))+'</text>';
+  }
+  return '<svg viewBox="0 0 340 142" role="img" aria-label="Τελευταίες 7 ημέρες· σήμερα μέγιστη '+Math.round(hi[n-1])+'°, ελάχιστη '+Math.round(lo[n-1])+'°· διακύμανση μέγιστης '+Math.round(Math.min(...hi))+'–'+Math.round(Math.max(...hi))+'°">'+g+'</svg>';
+}
+let histAt=0, histKey='';
+async function loadHist(){
+  const el=$('hist'), key=place.lat+','+place.lon;
+  if(key===histKey && Date.now()-histAt<30*60000) return;
+  try{
+    const a=await jget('https://api.open-meteo.com/v1/forecast?latitude='+place.lat+'&longitude='+place.lon+'&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset&past_days=7&forecast_days=1&timezone=auto');
+    const D=a.daily, n=D.time.length, t=Math.round(cv(D.temperature_2m_max[n-1])), y=Math.round(cv(D.temperature_2m_max[n-2])), dif=t-y;
+    histKey=key; histAt=Date.now();
+    if(D.sunrise&&D.sunset&&n>=2){ const sec=k=>(Date.parse(D.sunset[k]+'Z')-Date.parse(D.sunrise[k]+'Z'))/1000; funDL={today:sec(n-1),diff:sec(n-1)-sec(n-2)}; renderFun(lastD); }
+    el.innerHTML='<b>Σήμερα η μέγιστη θερμοκρασία είναι '+(dif===0?'σχεδόν ίδια με χθες':Math.abs(dif)+'° '+(dif>0?'υψηλότερη από χθες':'χαμηλότερη από χθες'))+' ('+t+'° έναντι '+y+'°).</b>'+histSvg(D)+
+      '<div class="sub" style="font-size:.8rem">Μέγιστη και ελάχιστη, από 7 ημέρες πριν μέχρι σήμερα. Δεδομένα μοντέλου, όχι μετρήσεις σταθμού.</div><div id="clim" class="sub" style="margin-top:8px;font-size:.85rem"></div>'; loadClim();
+  }catch(e){ el.textContent='Δεν φορτώθηκε το ιστορικό.'; }
+}
+
+/* ---------- Κοινοποίηση ---------- */
+async function shareDay(){
+  const T=id=>$(id).textContent.trim(), name=place?place.name:'';
+  const txt=name+': '+T('t')+'° — '+T('cond')+'. '+T('sub')+(T('brief')?' '+T('brief'):'');
+  try{
+    const cvs=document.createElement('canvas'); cvs.width=1080; cvs.height=1350;
+    const g=cvs.getContext('2d'), cs=getComputedStyle(document.body), F='system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+    const gr=g.createLinearGradient(0,0,0,1350); gr.addColorStop(0,cs.getPropertyValue('--top').trim()||'#1f4fa8'); gr.addColorStop(1,cs.getPropertyValue('--bottom').trim()||'#6fa8e8');
+    g.fillStyle=gr; g.fillRect(0,0,1080,1350); g.fillStyle='#fff';
+    g.font='500 64px '+F; g.fillText(name,80,150);
+    g.font='200 360px '+F; g.fillText(T('t')+'°',70,520);
+    g.font='500 68px '+F; g.fillText(T('cond'),80,630);
+    g.font='400 44px '+F; g.globalAlpha=.8; g.fillText(T('sub'),80,710); g.globalAlpha=1;
+    g.font='400 48px '+F; let line='', y=830;
+    for(const w of T('brief').split(' ')){ const t=line?line+' '+w:w; if(g.measureText(t).width>920 && line){ g.fillText(line,80,y); y+=66; line=w; } else line=t; }
+    if(line) g.fillText(line,80,y);
+    g.font='400 34px '+F; g.globalAlpha=.7; g.fillText(trs('Καιρός · Open-Meteo'),80,1280);
+    const blob=await new Promise(r=>cvs.toBlob(r,'image/png')), file=new File([blob],'kairos.png',{type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[file]})) await navigator.share({files:[file],text:txt});
+    else if(navigator.share) await navigator.share({text:txt});
+    else { await navigator.clipboard.writeText(txt); showMsg('Η κοινοποίηση δεν υποστηρίζεται. Το κείμενο αντιγράφηκε.'); setTimeout(hideMsg,3000); }
+  }catch(e){ if(!e || e.name!=='AbortError') showMsg('Η κοινοποίηση απέτυχε.',true); }
+}
+$('share').onclick=shareDay;
+$('s_lang').onchange=()=>{ store.set('lang',$('s_lang').value); location.reload(); };
+
+/* ---------- Επίσημες προειδοποιήσεις Κύπρου (Τμήμα Μετεωρολογίας μέσω MeteoAlarm) ---------- */
+const WK={thunder:['⛈️','Καταιγίδες'],rain:['🌧️','Έντονες βροχές'],wind:['💨','Ισχυροί άνεμοι'],snow:['❄️','Χιόνι / πάγος'],hot:['🌡️','Υψηλές θερμοκρασίες'],cold:['🥶','Χαμηλές θερμοκρασίες'],fog:['🌫️','Ομίχλη'],fire:['🔥','Κίνδυνος πυρκαγιάς'],sea:['🌊','Παράκτια φαινόμενα'],dust:['🌫️','Σκόνη']};
+const LVN={1:['🟡','Κίτρινη'],2:['🟠','Πορτοκαλί'],3:['🔴','Κόκκινη']};
+const MA='<a href="https://meteoalarm.org/en/live/region/CY" style="color:#9cc4ff">meteoalarm.org</a>';
+const FEED_URL='https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-cyprus';
+const WKIND=[[/thunder/i,'thunder'],[/rain|flood/i,'rain'],[/wind/i,'wind'],[/snow|ice/i,'snow'],[/high temp|heat/i,'hot'],[/low temp|cold|frost/i,'cold'],[/fog/i,'fog'],[/forest|fire/i,'fire'],[/coastal|sea|wave/i,'sea'],[/dust/i,'dust']];
+function parseFeed(xml,now){
+  const tag=(x,t)=>((x.match(new RegExp('<'+t+'[^>]*>([\\s\\S]*?)</'+t+'>'))||[])[1]||'').trim(), out=[];
+  for(const e of xml.split('<entry>').slice(1)){
+    const ev=tag(e,'cap:event'), m=ev.match(/(yellow|orange|red)\s*$/i);
+    if(!m || /cancel/i.test(tag(e,'cap:message_type'))) continue;
+    const expires=Date.parse(tag(e,'cap:expires')); if(!(expires>now)) continue;
+    const name=ev.slice(0,m.index).trim(), kind=WKIND.find(k=>k[0].test(name));
+    out.push({id:tag(e,'cap:identifier'),level:{yellow:1,orange:2,red:3}[m[1].toLowerCase()],type:kind?kind[1]:'other',name,onset:Date.parse(tag(e,'cap:onset'))||Date.parse(tag(e,'cap:effective')),expires});
+  }
+  return out.sort((x,y)=>y.level-x.level||x.onset-y.onset);
+}
+async function tfetch(u){ const c=new AbortController(), t=setTimeout(()=>c.abort(),10000); try{ return await fetch(u,{signal:c.signal}); } finally{ clearTimeout(t); } }
+async function fetchWarnings(){
+  const why=[];
+  try{ const r=await tfetch('/api/warnings'), ct=r.headers.get('content-type')||''; if(r.ok && ct.includes('json')) return (await r.json()).warnings; why.push('api '+r.status+(ct.includes('json')?'':' (δεν είναι JSON)')); }catch(e){ why.push('api: δίκτυο'); }
+  try{ const r=await tfetch(FEED_URL); if(r.ok) return parseFeed(await r.text(),Date.now()); why.push('feed '+r.status); }catch(e){ why.push('feed: αποκλείστηκε'); }
+  throw new Error(why.join(', '));
+}
+async function loadOfficial(){
+  const el=$('official');
+  try{
+    const ws=(await fetchWarnings()).filter(w=>w.expires>Date.now()), now=Date.now();
+    const f=ms=>new Date(ms).toLocaleString(LOC,{timeZone:'Asia/Nicosia',weekday:'short',hour:'2-digit',minute:'2-digit'});
+    el.innerHTML=(ws.length ? ws.map(w=>{
+      const k=WK[w.type]||['⚠️',w.name], l=LVN[w.level]||LVN[1];
+      return '<div class="msg lv'+w.level+'" style="margin:8px 0"><b>'+l[0]+' '+k[0]+' '+esc(k[1])+' · '+l[1]+' προειδοποίηση</b><br>'+(now>=w.onset?'Σε ισχύ έως '+f(w.expires+1000):'Ισχύει από '+f(w.onset)+' έως '+f(w.expires+1000))+'</div>'; }).join('')
+      : '<p class="sub">Καμία ενεργή προειδοποίηση.</p>')+'<div class="sub" style="font-size:.8rem;margin-top:6px">Πηγή: Τμήμα Μετεωρολογίας Κύπρου μέσω '+MA+' (CC BY 4.0).</div>';
+  }catch(e){ el.innerHTML='<p class="sub">Δεν φορτώθηκαν οι επίσημες προειδοποιήσεις ('+esc(e.message)+'). Δες '+MA+'.</p>'; }
+}
+
+/* ---------- Για την Κύπρο: θερμική καταπόνηση, συνθήκες πυρκαγιάς, αριθμοί έκτακτης ανάγκης ---------- */
+const APP_VERSION='3.18';
+function cypanel(d,i0){
+  const h=d.hourly, n=Math.min(i0+12,h.time.length), box=$('cypanel'), el=$('cy'), out=[];
+  const inCY=!!place && place.lat>=34.4 && place.lat<=35.8 && place.lon>=32.2 && place.lon<=34.7;
+  const AT=(h.apparent_temperature||[]).slice(i0,n).filter(v=>v!=null);
+  if(AT.length){
+    const mx=Math.max(...AT);
+    const L=mx>=51.1?['Ακραίος κίνδυνος','Ο κίνδυνος για την υγεία είναι πολύ υψηλός· μείνε σε δροσερό χώρο.']
+      :mx>=39.4?['Κίνδυνος','Απόφυγε την έκθεση στον ήλιο· υπάρχει κίνδυνος θερμοπληξίας.']
+      :mx>=32.2?['Ιδιαίτερη προσοχή','Περιόρισε τον χρόνο στον ήλιο, πιες πολύ νερό και κάνε διαλείμματα στη σκιά.']
+      :mx>=26.7?['Προσοχή','Πιες νερό και απόφυγε έντονη άσκηση στον ήλιο.']:['Χαμηλή','Δεν υπάρχει ένδειξη καταπόνησης από ζέστη στις επόμενες 12 ώρες.'];
+    if(L) out.push('<div><b>Θερμική καταπόνηση: '+L[0]+' (αισθητή έως '+R(mx)+'°)</b><br>'+L[1]+'<div class="sub" style="font-size:.8rem">Ενδεικτική κατηγορία με βάση την αισθητή θερμοκρασία (κατηγορίες NWS), όχι επίσημη προειδοποίηση.</div></div>');
+  }
+  if(inCY){
+    const T=h.temperature_2m.slice(i0,n), RH=(h.relative_humidity_2m||[]).slice(i0,n), G=h.wind_gusts_10m.slice(i0,n);
+    let hit=-1; for(let k=0;k<T.length;k++) if(T[k]>=30 && RH[k]!=null && RH[k]<=30 && G[k]>=25){ hit=k; break; }
+    if(hit>=0) out.push('<div><b>Συνθήκες που ευνοούν δασικές πυρκαγιές (εκτίμηση της εφαρμογής, όχι επίσημος δείκτης):</b><br>'+R(T[hit])+'° · υγρασία '+RH[hit]+'% · ριπές '+fW(G[hit])+' γύρω στις '+h.time[i0+hit].slice(11,16)+'. Μην ανάβεις φωτιές στην ύπαιθρο. Ο επίσημος κίνδυνος ανακοινώνεται από το Τμήμα Δασών.</div>');
+    out.push('<div><b>Έκτακτη ανάγκη:</b> <a href="tel:112" style="color:#9cc4ff">112</a> · Πυρκαγιά σε δάσος: <a href="tel:1407" style="color:#9cc4ff">1407</a> (Τμήμα Δασών)</div>');
+  }
+  box.hidden=!out.length; el.innerHTML=out.join('<hr style="border:0;border-top:1px solid var(--line);margin:10px 0">');
+}
+$('aboutBtn').onclick=()=>{ $('sdlg').close(); $('aver').textContent='Έκδοση '+APP_VERSION; $('adlg').showModal(); };
+$('aClose').onclick=()=>$('adlg').close();
+
+/* ---------- Ειδοποιήσεις push ---------- */
+const NR={min:[1,3],rainT:[0.1,100],rainP:[1,100],gust:[1,250],hotT:[-30,60],coldT:[-50,50],dustT:[1,2000],ahead:[0,7]}; // ίδια όρια με τον server
+const NDEF={on:false,official:true,min:1,storm:true,rain:true,rainMm:true,rainT:7.6,rainProb:true,rainP:50,wind:true,gust:60,hot:true,hotT:38,frost:true,coldT:0,snow:true,dust:true,dustT:50,morn:false,mornT:'07:30',quiet:false,qFrom:'23:00',qTo:'07:00',favAlerts:false,ahead:7};
+let NP=Object.assign({},NDEF,store.get('nprefs'));
+const NK=['official','storm','rain','rainMm','rainProb','wind','hot','frost','snow','dust','morn','quiet','favAlerts'], NS=['mornT','qFrom','qTo'], NN=['min','rainT','rainP','gust','hotT','coldT','dustT','ahead'];
+const nmsg=(t,err)=>{ const m=$('nmsg'); m.textContent=t; m.style.color=err?'#ff9b9b':'#9aa7bb'; };
+const b64b=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-s.length%4)%4)),c=>c.charCodeAt(0));
+const napi=(path,body)=>fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+const getSub=async()=>(await navigator.serviceWorker.ready).pushManager.getSubscription();
+function nView(){
+  NK.forEach(k=>$('n_'+k).checked=NP[k]); NN.forEach(k=>$('n_'+k).value=NP[k]); NS.forEach(k=>$('n_'+k).value=NP[k]);
+  ['nSave','nTest','nCheck','nHist','nOff'].forEach(i=>$(i).hidden=!NP.on); $('nOn').hidden=NP.on;
+}
+function nRead(){ NK.forEach(k=>NP[k]=$('n_'+k).checked); NS.forEach(k=>{ const v=$('n_'+k).value; NP[k]=/^\d\d:\d\d$/.test(v)?v:NDEF[k]; }); NN.forEach(k=>{ const v=parseFloat(String($('n_'+k).value).replace(',','.')); NP[k]=Number.isFinite(v)?Math.min(NR[k][1],Math.max(NR[k][0],v)):NDEF[k]; }); store.set('nprefs',NP); nView(); }
+async function pushSync(){
+  const sub=await getSub(); if(!sub||!place) return;
+  const tz=(lastD&&lastD.timezone)||Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const extra=NP.favAlerts?places.filter(p=>Math.abs(p.lat-place.lat)>0.02||Math.abs(p.lon-place.lon)>0.02).slice(0,5).map(p=>({lat:p.lat,lon:p.lon,name:p.name})):[];
+  const r=await napi('/api/subscribe',{sub:sub.toJSON(),place:{...place,tz},extra,prefs:NP});
+  if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error(j.error==='limit'?'Έχει συμπληρωθεί το όριο συσκευών για ειδοποιήσεις ('+j.max+'). Απενεργοποίησε τις ειδοποιήσεις σε μια άλλη συσκευή ή αύξησε το όριο (μεταβλητή MAX_SUBS στο Cloudflare).':'Σφάλμα διακομιστή ('+r.status+')'); }
+}
+async function nEnable(){
+  try{
+    if(!('Notification' in window)||!('PushManager' in window)||!('serviceWorker' in navigator)) throw new Error('Δεν υποστηρίζεται εδώ. Στο iPhone πρόσθεσε πρώτα την εφαρμογή στην αρχική οθόνη (iOS 16.4 και άνω) και άνοιξέ την από εκεί.');
+    if(!place) throw new Error('Διάλεξε πρώτα τοποθεσία.');
+    if(await Notification.requestPermission()!=='granted') throw new Error('Οι ειδοποιήσεις δεν επιτράπηκαν. Άνοιξε Ρυθμίσεις iPhone → Ειδοποιήσεις → Καιρός και ενεργοποίησέ τις.');
+    const kr=await fetch('/api/key'), kj=await kr.json().catch(()=>({}));
+    if(!kr.ok||!kj.key) throw new Error(kj.error==='KV'?'Ο server ειδοποιήσεων δεν έχει ρυθμιστεί: λείπει η σύνδεση KV στο Cloudflare.':kr.status===404?'Ο server ειδοποιήσεων δεν βρέθηκε. Ανέβασε την τελευταία έκδοση της εφαρμογής.':'Ο server ειδοποιήσεων δεν απάντησε σωστά.');
+    const reg=await navigator.serviceWorker.ready;
+    if(!(await reg.pushManager.getSubscription())) await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64b(kj.key)});
+    nRead(); NP.on=true; store.set('nprefs',NP); await pushSync(); nView();
+    nmsg('Ενεργοποιήθηκαν. Πάτα «Δοκιμή» για να δεις αν φτάνει ειδοποίηση.'); checkCron(true);
+  }catch(e){ NP.on=false; nmsg(e.message,true); }
+}
+async function nSave(){ nRead(); try{ await pushSync(); nmsg('Αποθηκεύτηκε.'); }catch(e){ nmsg(e.message,true); } }
+async function nDisable(){
+  try{ const sub=await getSub(); if(sub){ await napi('/api/unsubscribe',{endpoint:sub.endpoint}).catch(()=>{}); await sub.unsubscribe(); } }catch(e){}
+  NP.on=false; store.set('nprefs',NP); nView(); nmsg('Απενεργοποιήθηκαν.'); checkCron(true);
+}
+async function nTest(){
+  try{ const sub=await getSub(); if(!sub) throw new Error('Δεν υπάρχει ενεργή συνδρομή. Πάτα «Ενεργοποίηση».'); const r=await napi('/api/test',{endpoint:sub.endpoint}); nmsg(r.ok?'Στάλθηκε δοκιμαστική ειδοποίηση. Αν δεν τη δεις σε μερικά δευτερόλεπτα, έλεγξε τις ρυθμίσεις ειδοποιήσεων του iPhone.':'Η δοκιμή απέτυχε ('+r.status+').',!r.ok); }
+  catch(e){ nmsg(e.message,true); }
+}
+$('notifBtn').onclick=()=>{ $('sdlg').close(); nmsg(NP.on?'Ενεργές. Ο έλεγχος γίνεται από τον server περίπου κάθε 15 λεπτά, ακόμα και με κλειστή εφαρμογή.':'Ανενεργές.'); nView(); $('ndlg').showModal(); };
+$('nClose').onclick=()=>$('ndlg').close();
+function nReport(j){
+  const r=j.report, L=j.last, i=r.info, o=[];
+  o.push(L ? 'Αυτόματος έλεγχος (cron): πριν '+Math.round((Date.now()-L.at)/60000)+' λεπτά'+(L.errors&&L.errors.length?' · σφάλματα: '+L.errors.join('; '):'')+(Date.now()-L.at>40*60000?'\n⚠️ Δεν τρέχει κάθε 15 λεπτά. Έλεγξε το cron-job.org.':'') : '⚠️ Ο αυτόματος έλεγχος (cron-job.org) δεν έχει τρέξει ποτέ.');
+  if(r.error) o.push('⚠️ Σφάλμα πρόγνωσης στον server: '+r.error);
+  if(i){
+    o.push('Τώρα: ριπές '+Math.round(i.gustNow)+' km/h · θερμοκρασία '+Math.round(i.tempNow)+'° · βροχή '+i.precipNow+' mm/ώρα');
+    o.push('Επόμενες 12 ώρες (μέγιστα): ριπές '+Math.round(i.gustMax)+' km/h (όριο '+i.gustT+') · θερμοκρασία '+Math.round(i.tempMax)+'°/'+Math.round(i.tempMin)+'° (όρια '+i.hotT+'°/'+i.coldT+'°) · βροχή '+i.precipMax.toFixed(1)+' mm/ώρα (όριο '+i.rainT+(i.rainMmOn===false?', ανενεργό':'')+') · πιθανότητα βροχής έως '+Math.round(i.probMax)+'% (όριο '+i.rainP+'%'+(i.rainProbOn===false?', ανενεργό':'')+')'+(i.dustMax!=null?' · σκόνη '+Math.round(i.dustMax)+' µg/m³ (όριο '+i.dustT+')':'')+(i.dustError?' · σκόνη: '+i.dustError:''));
+  }
+  o.push(r.sent.length?'✅ Στάλθηκε τώρα: '+r.sent.join(', '):'Δεν στάλθηκε νέα ειδοποίηση.');
+  if(r.ahead) o.push(r.ahead.length?'📅 Επόμενες ημέρες:\n'+r.ahead.join('\n'):'📅 Επόμενες ημέρες: τίποτα πάνω από τα όριά σου.');
+  r.notes.forEach(n=>o.push('• '+n));
+  return o.join('\n');
+}
+async function nCheck(){
+  try{ const sub=await getSub(); if(!sub) throw new Error('Δεν υπάρχει ενεργή συνδρομή. Πάτα «Ενεργοποίηση».'); nmsg('Έλεγχος…'); const r=await napi('/api/check',{endpoint:sub.endpoint}), j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(r.status===404?'Η συσκευή δεν είναι δηλωμένη στον server. Πάτα «Αποθήκευση» ή «Ενεργοποίηση».':'Ο έλεγχος απέτυχε ('+r.status+').'); nmsg(nReport(j)); }
+  catch(e){ nmsg(e.message,true); }
+}
+$('nCheck').onclick=nCheck;
+$('nOn').onclick=nEnable; $('nSave').onclick=nSave; $('nOff').onclick=nDisable; $('nTest').onclick=nTest;
+
+/* ---------- Fun fact της ημέρας ---------- */
+const FACTS=[
+"Οι σταγόνες της βροχής δεν έχουν σχήμα δάκρυ: οι μικρές είναι σχεδόν σφαιρικές και οι μεγαλύτερες μοιάζουν με ψωμάκι, με επίπεδη βάση.",
+"Ο αέρας γύρω από έναν κεραυνό θερμαίνεται σε περίπου 30.000°C, πολύ περισσότερο από την επιφάνεια του Ήλιου (περίπου 5.500°C).",
+"Μέτρα τα δευτερόλεπτα ανάμεσα στην αστραπή και τη βροντή: κάθε 3 δευτερόλεπτα αντιστοιχούν περίπου σε 1 χιλιόμετρο απόσταση.",
+"Οι νιφάδες χιονιού έχουν συνήθως έξι κλάδους, επειδή οι κρύσταλλοι του πάγου έχουν εξαγωνική δομή.",
+"Το ουράνιο τόξο είναι στην πραγματικότητα ολόκληρος κύκλος. Από το έδαφος βλέπουμε μόνο το μισό, γιατί ο ορίζοντας κόβει το υπόλοιπο.",
+"Ένα συνηθισμένο σύννεφο κούμουλος μπορεί να έχει βάρος περίπου 500 τόνους. Επιπλέει επειδή το νερό του είναι σκορπισμένο σε μικροσκοπικές σταγόνες.",
+"Το επίσημο ρεκόρ υψηλότερης θερμοκρασίας στη Γη είναι 56,7°C, στην Κοιλάδα του Θανάτου (ΗΠΑ), στις 10 Ιουλίου 1913.",
+"Η χαμηλότερη θερμοκρασία που έχει μετρηθεί στη Γη είναι −89,2°C, στον σταθμό Βοστόκ της Ανταρκτικής, στις 21 Ιουλίου 1983.",
+"Η Κύπρος έχει από τα πιο ηλιόλουστα κλίματα της Ευρώπης, με πάνω από 3.000 ώρες ηλιοφάνειας τον χρόνο.",
+"Το φως του Ήλιου χρειάζεται περίπου 8 λεπτά και 20 δευτερόλεπτα για να φτάσει στη Γη.",
+"Η Σελήνη απομακρύνεται από τη Γη κατά περίπου 3,8 εκατοστά τον χρόνο.",
+"Στην Αφροδίτη μια μέρα διαρκεί περισσότερο από έναν χρόνο της: κάνει περίπου 243 γήινες ημέρες να γυρίσει γύρω από τον άξονά της και 225 για να κάνει τον γύρο του Ήλιου.",
+"Η Γη κινείται γύρω από τον Ήλιο με ταχύτητα περίπου 30 χιλιόμετρα το δευτερόλεπτο, δηλαδή περίπου 107.000 χιλιόμετρα την ώρα.",
+"Οι άνεμοι παίρνουν το όνομά τους από την κατεύθυνση από την οποία φυσούν: ο βοριάς έρχεται από τον βορρά.",
+"Την κλίμακα Μποφόρ για την ένταση του ανέμου την επινόησε ο ναύαρχος Φράνσις Μποφόρ το 1805.",
+"Στη Μεσόγειο σχηματίζονται σπάνια κυκλώνες που μοιάζουν με τροπικούς, οι λεγόμενοι «medicanes».",
+"Το σημείο δρόσου είναι η θερμοκρασία στην οποία ο αέρας γίνεται κορεσμένος με υδρατμούς και αρχίζει να σχηματίζεται δροσιά ή ομίχλη.",
+"Η χαρακτηριστική μυρωδιά της βροχής πάνω σε στεγνό έδαφος λέγεται πετρίχωρ, από τις ελληνικές λέξεις «πέτρα» και «ιχώρ».",
+"Σε όλο τον κόσμο ο κεραυνός χτυπά τη Γη δεκάδες φορές το δευτερόλεπτο.",
+"Χωρίς το φυσικό φαινόμενο του θερμοκηπίου, η μέση θερμοκρασία της Γης θα ήταν περίπου −18°C αντί για περίπου 15°C.",
+"Το μεγαλύτερο χαλάζι που έχει καταγραφεί στις ΗΠΑ (Σάουθ Ντακότα, 2010) είχε διάμετρο περίπου 20 εκατοστά.",
+"Ο ήχος ταξιδεύει πιο γρήγορα στον ζεστό αέρα. Στους 20°C κινείται με περίπου 343 μέτρα το δευτερόλεπτο.",
+"Όταν η υγρασία είναι υψηλή νιώθεις πιο ζέστη, επειδή ο ιδρώτας εξατμίζεται πιο δύσκολα και το σώμα δροσίζεται λιγότερο.",
+"Στο Μοσινράμ της Ινδίας η ετήσια βροχόπτωση ξεπερνά τα 11.000 χιλιοστά, από τις μεγαλύτερες στον κόσμο.",
+"Η σκόνη από τη Σαχάρα φτάνει συχνά στην Κύπρο, και κάθε χρόνο δεκάδες εκατομμύρια τόνοι της διασχίζουν τον Ατλαντικό και φτάνουν στον Αμαζόνιο.",
+"Η Σελήνη δείχνει πάντα την ίδια πλευρά της στη Γη, επειδή περιστρέφεται γύρω από τον άξονά της στον ίδιο χρόνο που κάνει να γυρίσει γύρω από τη Γη.",
+"Οι παλίρροιες στη Μεσόγειο είναι πολύ μικρές, συνήθως λιγότερο από μισό μέτρο, σε σύγκριση με τον Ατλαντικό.",
+"Η κορυφή Όλυμπος στον Τρόοδο είναι το ψηλότερο σημείο της Κύπρου (1.952 μέτρα), και το χειμώνα πολλές φορές χιονίζει εκεί.",
+"Στις ισημερίες (γύρω στις 20–21 Μαρτίου και 22–23 Σεπτεμβρίου) η μέρα και η νύχτα έχουν σχεδόν την ίδια διάρκεια.",
+"Η μεγαλύτερη μέρα του χρόνου στο βόρειο ημισφαίριο είναι γύρω στις 21 Ιουνίου και η μικρότερη γύρω στις 21 Δεκεμβρίου.",
+"Η μεγαλύτερη ριπή ανέμου που έχει επίσημα καταγραφεί στη Γη είναι 408 χιλιόμετρα την ώρα, στη νήσο Μπάροου της Αυστραλίας το 1996.",
+"Ένα κυβικό μέτρο αέρα στο επίπεδο της θάλασσας ζυγίζει περίπου 1,2 κιλά.",
+"Στην κορυφή του Έβερεστ η ατμοσφαιρική πίεση είναι περίπου το ένα τρίτο εκείνης στο επίπεδο της θάλασσας.",
+"Το Εμπάιρ Στέιτ Μπίλντινγκ της Νέας Υόρκης δέχεται κεραυνούς περίπου 20 έως 25 φορές τον χρόνο.",
+"Τα σύννεφα cirrus, που μοιάζουν με λεπτές ίνες, βρίσκονται σε ύψος πάνω από 6 χιλιόμετρα και αποτελούνται από κρυστάλλους πάγου.",
+"Η λέξη μετεωρολογία προέρχεται από τα ελληνικά «μετέωρα». Ο Αριστοτέλης έγραψε το έργο «Μετεωρολογικά» γύρω στο 340 π.Χ.",
+"Ο Πύργος των Ανέμων στην Αθήνα, του 1ου αιώνα π.Χ., είχε ηλιακά ρολόγια, κλεψύδρα και ανεμοδείκτη, και απεικόνιζε τους οκτώ ανέμους.",
+"Οι αρχαίοι Έλληνες έδιναν ονόματα στους ανέμους: Βορέας, Νότος, Ζέφυρος, Απηλιώτης.",
+"Το νερό είναι πυκνότερο στους 4°C. Γι' αυτό οι λίμνες παγώνουν από την επιφάνεια και τα ψάρια επιβιώνουν από κάτω.",
+"Ο πάγος επιπλέει στο νερό, επειδή είναι περίπου 9% λιγότερο πυκνός από αυτό.",
+"Ένα σύννεφο καταιγίδας μπορεί να φτάσει σε ύψος πάνω από 10 χιλιόμετρα.",
+"Τα σύννεφα φαίνονται λευκά, επειδή οι σταγόνες τους διασκορπίζουν όλα τα χρώματα του ηλιακού φωτός περίπου εξίσου.",
+"Ο ουρανός είναι μπλε, επειδή η ατμόσφαιρα διασκορπίζει το μπλε φως πολύ περισσότερο από το κόκκινο.",
+"Το ηλιοβασίλεμα κοκκινίζει, επειδή το φως διανύει μεγαλύτερη διαδρομή στην ατμόσφαιρα και το μπλε διασκορπίζεται στην πορεία.",
+"Στο ηλιοβασίλεμα πάνω από τη θάλασσα μπορεί να φανεί για λίγα δευτερόλεπτα η «πράσινη λάμψη» στο όριο του ήλιου.",
+"Περίπου το 71% της επιφάνειας της Γης καλύπτεται από θάλασσα.",
+"Ο μεγαλύτερος κεραυνός που έχει καταγραφεί είχε μήκος 768 χιλιόμετρα, στη Βραζιλία το 2018.",
+"Ο Ήλιος έχει κύκλο δραστηριότητας περίπου 11 ετών, με κορύφωση των ηλιακών κηλίδων.",
+"Οι εποχές δεν οφείλονται στην απόσταση από τον Ήλιο, αλλά στην κλίση του άξονα της Γης, που είναι περίπου 23,4°.",
+"Η Γη βρίσκεται πιο κοντά στον Ήλιο στις αρχές Ιανουαρίου, δηλαδή τον χειμώνα του βόρειου ημισφαιρίου.",
+"Το χιόνι φαίνεται λευκό, επειδή οι κρύσταλλοι του διασκορπίζουν το φως προς όλες τις κατευθύνσεις.",
+"Ένας κεραυνός μπορεί να έχει τάση εκατοντάδων εκατομμυρίων volt.",
+"Στο μεσογειακό κλίμα της Κύπρου οι βροχές συγκεντρώνονται κυρίως από τον Νοέμβριο ως τον Μάρτιο, ενώ το καλοκαίρι είναι ξηρό.",
+"Η ατμοσφαιρική πίεση στο επίπεδο της θάλασσας είναι κατά μέσο όρο περίπου 1013 hPa.",
+"Στην έρημο Ατακάμα της Χιλής υπάρχουν περιοχές όπου δεν έχει βρέξει σχεδόν καθόλου επί χρόνια.",
+"Το σέλας δημιουργείται όταν σωματίδια του ηλιακού ανέμου συγκρούονται με την ατμόσφαιρα της Γης.",
+"Το νερό της θάλασσας γύρω από την Κύπρο ζεσταίνεται το καλοκαίρι πάνω από τους 27°C.",
+"Ένα σύννεφο καταιγίδας μπορεί να δώσει μέσα σε λίγη ώρα περισσότερη βροχή από όση πέφτει σε εβδομάδες σε άλλες περιόδους του χρόνου."
+];
+let lastD=null, funDL=null;
+function renderFun(d){
+  const el=$('fun'); if(!el||!d||!d.current) return;
+  const [y,m,dd]=d.current.time.slice(0,10).split('-').map(Number);
+  const doy=Math.floor((Date.UTC(y,m-1,dd)-Date.UTC(y,0,1))/864e5)+1, tot=((y%4===0&&y%100!==0)||y%400===0)?366:365;
+  const dateStr=new Date(Date.UTC(y,m-1,dd,12)).toLocaleDateString(LOC,{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'});
+  const hu=LANG==='en'?['h ','m','m ','s']:['ω ','λ','λ ','δ'];
+  const F=ALLF[((doy-1)*FK)%ALLF.length];
+  let h='<b>'+dateStr+'</b> · ημέρα του έτους: '+doy+'/'+tot+'<p data-notr style="margin:10px 0"><span class="sub">'+F[0]+'</span><br>'+F[1]+'</p>';
+  if(funDL){
+    const a=Math.abs(funDL.diff), t=funDL.today;
+    h+='<div class="sub">Η σημερινή ημέρα διαρκεί '+Math.floor(t/3600)+hu[0]+Math.round((t%3600)/60)+hu[1]+(a<1?' — ίδια με χθες.':' — '+Math.floor(a/60)+hu[2]+Math.round(a%60)+hu[3]+' '+(funDL.diff>0?'περισσότερη από χθες.':'λιγότερη από χθες.'))+'</div>';
+  }
+  el.innerHTML=h;
+}
+
+/* ---------- Περισσότερα fun facts (ιστορία, πολιτισμός, τέχνη, αθλητικά, επιστήμη, Κύπρος…) ---------- */
+const FACTS2=[
+["Ιστορία","Οι πρώτοι σύγχρονοι Ολυμπιακοί Αγώνες έγιναν στην Αθήνα το 1896, με αθλητές από 14 χώρες."],
+["Ιστορία","Τον Μηχανισμό των Αντικυθήρων, έναν αρχαίο αναλογικό «υπολογιστή» για αστρονομικούς υπολογισμούς, τον βρήκαν σφουγγαράδες σε ναυάγιο το 1900."],
+["Ιστορία","Η λέξη «δημοκρατία» προέρχεται από τις λέξεις «δήμος» και «κράτος». Η Αθήνα εφάρμοσε άμεση δημοκρατία τον 5ο αιώνα π.Χ."],
+["Ιστορία","Ο Παρθενώνας χτίστηκε στην Αθήνα κυρίως ανάμεσα στο 447 και το 432 π.Χ."],
+["Ιστορία","Η Κυπριακή Δημοκρατία ανακηρύχθηκε ανεξάρτητη την 1η Οκτωβρίου 1960."],
+["Ιστορία","Η Κύπρος εντάχθηκε στην Ευρωπαϊκή Ένωση την 1η Μαΐου 2004 και υιοθέτησε το ευρώ την 1η Ιανουαρίου 2008."],
+["Ιστορία","Στους αρχαίους Ολυμπιακούς Αγώνες, που διεξάγονταν στην Ολυμπία, ο νικητής έπαιρνε στεφάνι από κλαδί αγριελιάς, τον κότινο."],
+["Ιστορία","Την πρώτη προσεδάφιση ανθρώπων στη Σελήνη την έκανε το διαστημόπλοιο Απόλλων 11, στις 20 Ιουλίου 1969."],
+["Ιστορία","Ο Αρχιμήδης από τις Συρακούσες διατύπωσε την αρχή της άνωσης. Σύμφωνα με τον μύθο, φώναξε «Εύρηκα!»."],
+["Ιστορία","Το «Πυθαγόρειο θεώρημα» ήταν γνωστό στους Βαβυλώνιους πολλούς αιώνες πριν από τον Πυθαγόρα."],
+["Κύπρος","Σύμφωνα με τον μύθο, η Αφροδίτη γεννήθηκε από τον αφρό της θάλασσας κοντά στην Πέτρα του Ρωμιού, στην Πάφο."],
+["Κύπρος","Η Πάφος εγγράφηκε στον κατάλογο Παγκόσμιας Κληρονομιάς της UNESCO το 1980."],
+["Κύπρος","Ο νεολιθικός οικισμός της Χοιροκοιτίας, μνημείο της UNESCO, χρονολογείται από περίπου το 7000 π.Χ."],
+["Κύπρος","Δέκα εκκλησίες με τοιχογραφίες στον Τρόοδο είναι μνημεία της UNESCO από το 1985."],
+["Κύπρος","Η Κύπρος είναι το τρίτο μεγαλύτερο νησί της Μεσογείου, μετά τη Σικελία και τη Σαρδηνία."],
+["Κύπρος","Το χαλούμι, παραδοσιακό τυρί της Κύπρου, προστατεύεται από το 2021 ως προϊόν ΠΟΠ της Ευρωπαϊκής Ένωσης."],
+["Κύπρος","Στην αρχαία Κύπρο χρησιμοποιούνταν ειδικό κυπριακό συλλαβάριο για να γράφεται η ελληνική γλώσσα."],
+["Κύπρος","Η Κομμανδαρία, γλυκό κρασί της Κύπρου, θεωρείται από τα αρχαιότερα κρασιά του κόσμου που παράγονται ακόμα."],
+["Γλώσσα","Η λέξη «αλφάβητο» προέρχεται από τα ονόματα των δύο πρώτων γραμμάτων, άλφα και βήτα."],
+["Γλώσσα","Χιλιάδες αγγλικές λέξεις έχουν ελληνική προέλευση, όπως «τηλέφωνο», «φωτογραφία» και «δημοκρατία»."],
+["Γλώσσα","Η λέξη «μαραθώνιος» προέρχεται από τη μάχη του Μαραθώνα, το 490 π.Χ."],
+["Τέχνη","Η Μόνα Λίζα του Λεονάρντο ντα Βίντσι εκτίθεται στο Λούβρο από το 1797. Κλάπηκε το 1911 και βρέθηκε το 1913."],
+["Τέχνη","Ο Οδυσσέας Ελύτης τιμήθηκε με το Νόμπελ Λογοτεχνίας το 1979 και ο Γιώργος Σεφέρης το 1963."],
+["Τέχνη","Ο Μίκης Θεοδωράκης έγραψε τη μουσική της ταινίας «Ζορμπάς», το 1964."],
+["Τέχνη","Η «Ιλιάδα» και η «Οδύσσεια» αποδίδονται στον Όμηρο και γράφτηκαν γύρω στον 8ο αιώνα π.Χ."],
+["Τέχνη","Το αρχαίο θέατρο της Επιδαύρου, του 4ου αιώνα π.Χ., φημίζεται για την εξαιρετική ακουστική του και χωρά περίπου 14.000 θεατές."],
+["Τέχνη","Ο Μπετόβεν συνέθεσε την Ένατη Συμφωνία όταν ήταν σχεδόν εντελώς κουφός."],
+["Τέχνη","Ο Σαίξπηρ έγραψε περίπου 37 θεατρικά έργα."],
+["Τέχνη","Ο Μότσαρτ άρχισε να συνθέτει μουσική σε ηλικία 5 ετών."],
+["Αθλητικά","Η απόσταση του μαραθωνίου, 42,195 χιλιόμετρα, καθιερώθηκε επίσημα το 1921. Προέρχεται από τους Ολυμπιακούς Αγώνες του Λονδίνου το 1908."],
+["Αθλητικά","Ο Σπύρος Λούης κέρδισε τον πρώτο μαραθώνιο των σύγχρονων Ολυμπιακών Αγώνων, το 1896."],
+["Αθλητικά","Η Ελλάδα κέρδισε το Ευρωπαϊκό Πρωτάθλημα ποδοσφαίρου το 2004, στην Πορτογαλία."],
+["Αθλητικά","Η Ελλάδα κέρδισε το Ευρωμπάσκετ το 1987 και το 2005."],
+["Αθλητικά","Ο Γιάννης Αντετοκούνμπο ανακηρύχθηκε MVP του NBA το 2019 και το 2020, και πρωταθλητής το 2021."],
+["Αθλητικά","Το μπάσκετ επινοήθηκε το 1891 από τον Τζέιμς Νάισμιθ. Στην αρχή οι στόχοι ήταν καλάθια για ροδάκινα."],
+["Αθλητικά","Το Παγκόσμιο Κύπελλο ποδοσφαίρου διεξάγεται από το 1930. Η πρώτη διοργάνωση έγινε στην Ουρουγουάη."],
+["Αθλητικά","Η Βραζιλία έχει κερδίσει πέντε Παγκόσμια Κύπελλα ποδοσφαίρου, το πιο πρόσφατο το 2002."],
+["Αθλητικά","Ο Ουσέιν Μπολτ κατέχει το παγκόσμιο ρεκόρ στα 100 μέτρα, με 9,58 δευτερόλεπτα (2009)."],
+["Αθλητικά","Το σκάκι θεωρείται ότι ξεκίνησε στην Ινδία πριν από περίπου 1.500 χρόνια."],
+["Αθλητικά","Οι αρχαίοι Ολυμπιακοί Αγώνες διεξάγονταν κάθε τέσσερα χρόνια, από το 776 π.Χ. (παραδοσιακή χρονολογία) έως το 393 μ.Χ."],
+["Επιστήμη","Η Μαρία Κιουρί είναι το μόνο πρόσωπο με βραβείο Νόμπελ σε δύο διαφορετικές επιστήμες: Φυσική (1903) και Χημεία (1911)."],
+["Επιστήμη","Τον Παγκόσμιο Ιστό τον πρότεινε ο Τιμ Μπέρνερς-Λι το 1989, στο CERN."],
+["Επιστήμη","Η δομή της διπλής έλικας του DNA περιγράφηκε το 1953 από τους Τζέιμς Γουάτσον και Φράνσις Κρικ."],
+["Επιστήμη","Το Έβερεστ είναι το ψηλότερο βουνό της Γης: 8.849 μέτρα, σύμφωνα με τη μέτρηση του 2020."],
+["Επιστήμη","Η Σαχάρα είναι η μεγαλύτερη θερμή έρημος του κόσμου και καλύπτει περίπου 9 εκατομμύρια τετραγωνικά χιλιόμετρα."],
+["Επιστήμη","Το ανθρώπινο σώμα ενός ενήλικα έχει συνήθως 206 οστά."],
+["Φύση","Το χταπόδι έχει τρεις καρδιές και μπλε αίμα."],
+["Φύση","Οι μέλισσες ανακοινώνουν στις συντρόφισσές τους πού βρίσκονται τα λουλούδια με τον «χορό του κουνήματος»."],
+["Φύση","Το μέλι θεωρείται σχεδόν άφθαρτο, επειδή έχει πολύ λίγο νερό και είναι όξινο."],
+["Γεωγραφία","Η Ελλάδα έχει πάνω από 6.000 νησιά και νησίδες, από τα οποία κατοικούνται περίπου 227."],
+["Γεωγραφία","Το ψηλότερο κτίριο του κόσμου είναι ο Μπουρτζ Χαλίφα στο Ντουμπάι, με ύψος 828 μέτρα (2010)."],
+["Γεωγραφία","Είναι μύθος ότι το Σινικό Τείχος φαίνεται με γυμνό μάτι από το Διάστημα."],
+["Τεχνολογία","Το πρώτο email στάλθηκε το 1971 από τον Ρέι Τόμλινσον, που επέλεξε το σύμβολο @ για τις διευθύνσεις."],
+["Τεχνολογία","Το πρώτο μήνυμα SMS στάλθηκε στις 3 Δεκεμβρίου 1992 και έγραφε «Merry Christmas»."],
+["Τεχνολογία","Ο πρώτος iPhone παρουσιάστηκε από τον Στιβ Τζομπς στις 9 Ιανουαρίου 2007."],
+["Τεχνολογία","Το GPS βασίζεται σε δορυφόρους με ατομικά ρολόγια. Χωρίς διορθώσεις από τη θεωρία της σχετικότητας, θα έκανε λάθος αρκετά χιλιόμετρα την ημέρα."],
+["Τεχνολογία","Ο ENIAC, από τους πρώτους ηλεκτρονικούς υπολογιστές (1945–46), ζύγιζε περίπου 27 τόνους."],
+["Τεχνολογία","Η λέξη «bug» για ένα σφάλμα προγράμματος έγινε γνωστή το 1947, όταν βρέθηκε πραγματικό έντομο μέσα σε υπολογιστή του Χάρβαρντ."],
+["Τεχνολογία","Το Διαδίκτυο ξεκίνησε ως το ARPANET. Η πρώτη σύνδεση ανάμεσα σε δύο υπολογιστές έγινε το 1969."],
+["Τεχνολογία","Ο Γκράχαμ Μπελ κατοχύρωσε το δίπλωμα ευρεσιτεχνίας του τηλεφώνου το 1876."],
+["Τεχνολογία","Η Άντα Λάβλεϊς θεωρείται η πρώτη προγραμματίστρια. Το 1843 έγραψε αλγόριθμο για την Αναλυτική Μηχανή του Μπάμπατζ."],
+["Τεχνολογία","Ο Λίνους Τόρβαλντς δημιούργησε τον πυρήνα Linux το 1991."],
+["Τεχνολογία","Το Bluetooth πήρε το όνομά του από τον Δανό βασιλιά Χάραλντ Μπλάουταντ."],
+["Τεχνολογία","Ο πρώτος δορυφόρος, ο Σπούτνικ 1, εκτοξεύθηκε στις 4 Οκτωβρίου 1957."],
+["Τεχνολογία","Η διάταξη πληκτρολογίου QWERTY επινοήθηκε τη δεκαετία του 1870, για τις γραφομηχανές του Κρίστοφερ Σόουλς."],
+["Τεχνολογία","Το πρώτο ποντίκι υπολογιστή, του Ντάγκλας Ένγκελμπαρτ (1964), είχε ξύλινο περίβλημα."],
+["Τεχνολογία","Η πρώτη ιστοσελίδα τέθηκε σε λειτουργία το 1991, στο CERN."],
+["Πολιτισμός","Η Μεσογειακή Διατροφή έχει ενταχθεί από το 2010 στον κατάλογο της άυλης πολιτιστικής κληρονομιάς της UNESCO, με συμμετοχή και της Κύπρου και της Ελλάδας."],
+["Πολιτισμός","Το ρεμπέτικο εντάχθηκε στον κατάλογο της άυλης πολιτιστικής κληρονομιάς της UNESCO το 2017."],
+["Πολιτισμός","Τα λευκαρίτικα κεντήματα της Κύπρου ανήκουν στον κατάλογο της άυλης πολιτιστικής κληρονομιάς της UNESCO από το 2009."],
+["Πολιτισμός","Τα Ελευσίνια Μυστήρια ήταν από τις σημαντικότερες θρησκευτικές τελετές της αρχαίας Ελλάδας."],
+["Πολιτισμός","Ο Κατακλυσμός, γιορτή με νερό που γιορτάζεται στην Κύπρο την Πεντηκοστή, έχει βαθιές παραδοσιακές ρίζες."]
+];
+const ALLF=FACTS.map(t=>['Καιρός και επιστήμη',t]).concat(FACTS2);
+const FK=(()=>{ const g=(a,b)=>b?g(b,a%b):a; let k=(Math.floor(ALLF.length/3))|1; while(g(k,ALLF.length)!==1) k+=2; return k; })();
+
+/* ---------- Σαν σήμερα (Βικιπαίδεια: ελληνική ή αγγλική) ---------- */
+const MG=['Ιανουαρίου','Φεβρουαρίου','Μαρτίου','Απριλίου','Μαΐου','Ιουνίου','Ιουλίου','Αυγούστου','Σεπτεμβρίου','Οκτωβρίου','Νοεμβρίου','Δεκεμβρίου'];
+const OF=['Όλα','Ιστορία','Αθλητικά','Τέχνες','Τεχνολογία','Επιστήμη','Γεννήσεις','Θάνατοι','Επέτειοι'];
+const OTL={events:'Γεγονός',births:'Γέννηση',deaths:'Θάνατος',holidays:'Επέτειος'};
+const nz=t=>String(t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const OCAT=[
+ ['Αθλητικά',/αθλητ|αθλημα|ποδοσφαιρ|μπασκετ|καλαθοσφαιρ|ολυμπι|πρωταθλημ|μουντιαλ|παγκοσμιο κυπελλο|τενις|σκακι|ποδηλατ|αγωνισμα|πυγμαχ|κολυμβ|γκολφ|φορμουλα|βολει|μαραθωνι|\b(football|soccer|basketball|olympic|olympics|tennis|boxer|boxing|cricket|golfer|athlete|swimmer|cyclist|world cup|footballer|racing driver)\b/],
+ ['Τεχνολογία',/υπολογιστ|διαδικτυ|λογισμικ|τηλεφων|ηλεκτρονικ|ροβοτ|ρομποτ|τρανζιστορ|ψηφιακ|τεχνητη νοημοσυνη|smartphone|εφευρ|μικροεπεξεργαστ|παγκοσμιος ιστος|\b(computer|internet|software|telephone|smartphone|iphone|ipad|android|windows|linux|laptop|playstation|xbox|video game|email|robot|transistor|digital|website|microsoft|apple|google|facebook|youtube|amazon|technology|patent|invented|inventor)\b/],
+ ['Τέχνες',/ζωγραφ|συνθετ|ηθοποι|σκηνοθετ|ταινια|κινηματογραφ|ποιητ|συγγραφ|μυθιστορημα|βιβλιο|οπερα|θεατρ|μουσικ|τραγουδ|γλυπτ|αρχιτεκτ|λογοτεχν|διηγημα|ορχηστρ|χορευτ|φωτογραφ|\b(painter|composer|actor|actress|director|film|poet|novelist|writer|singer|opera|sculptor|architect|album|band|musician|artist)\b/],
+ ['Επιστήμη',/επιστημ|φυσικ[οηω]ς|χημικ|αστρονομ|τηλεσκοπ|διαστημ|δορυφορ|μαθηματικ|ιατρ|ανακαλυψ|nasa|πυραυλ|βιολογ|σεληνη|σεληνι|πλανητ|\b(scientist|physicist|chemist|astronomer|mathematician|physician|biologist|spacecraft|satellite|discovers?|moon|planet|nobel)\b/]];
+const ocat=t=>{ const n=nz(t); for(const [c,re] of OCAT) if(re.test(n)) return c; return 'Ιστορία'; };
+function parseOTD(txt){
+  const out=[]; let type='';
+  for(const raw of String(txt).split('\n')){
+    const line=raw.trim(); if(!line) continue;
+    const h=line.match(/^(=+)\s*(.+?)\s*=+$/);
+    if(h){ if(h[1].length===2){ const s=h[2]; type=/^Γεγονότα/.test(s)?'events':/^Γεννήσεις/.test(s)?'births':/^Θάνατοι/.test(s)?'deaths':/^(Εορτές|Αργίες|Επέτειοι|Γιορτές)/.test(s)?'holidays':''; } continue; }
+    if(!type) continue;
+    const t=line.replace(/\[\d+\]/g,'').replace(/\s+/g,' ');
+    const m=t.match(/^(\d{1,4}(?:\s*π\.?\s?Χ\.?)?)\s*[-–—:]\s*(.+)$/);
+    if(type==='holidays'){ if(t.length>3 && t.length<220) out.push({type,year:'',text:t.replace(/^[-–—•]\s*/,''),cat:'Ιστορία'}); continue; }
+    if(m && m[2].length>8) out.push({type,year:m[1].replace(/\s+/g,' '),text:m[2],cat:ocat(m[2])});
+  }
+  return out;
+}
+function orderOTD(items){
+  const yr=x=>{ const n=parseInt(x.year,10)||0; return /π\.?\s?Χ/.test(x.year)?-n:n; };
+  const B={}; items.forEach(x=>{ const k=x.type==='holidays'?'z':x.cat==='Αθλητικά'?'s':x.cat==='Τεχνολογία'?'t':x.cat==='Τέχνες'?'a':x.cat==='Επιστήμη'?'e':x.type==='events'?'h':x.type==='births'?'b':'d'; (B[k]=B[k]||[]).push(x); });
+  Object.values(B).forEach(a=>a.sort((p,q)=>yr(q)-yr(p)));
+  const keys=['h','s','t','a','e','b','d','z'].filter(k=>B[k]), out=[];
+  for(let i=0;out.length<items.length&&i<400;i++) keys.forEach(k=>{ if(B[k][i]) out.push(B[k][i]); });
+  return out;
+}
+let otdItems=[], otdSrc='', otdF='Όλα', otdN=8, otdKey='', otdWhich=LANG==='en'?'en':'el';
+const OW=[['el','Ελληνική'],['en','Αγγλική']];
+function otdMatch(x){ return otdF==='Όλα'||(otdF==='Ιστορία'&&x.type==='events'&&x.cat==='Ιστορία')||(['Αθλητικά','Τέχνες','Τεχνολογία','Επιστήμη'].includes(otdF)&&x.cat===otdF)||(otdF==='Γεννήσεις'&&x.type==='births')||(otdF==='Θάνατοι'&&x.type==='deaths')||(otdF==='Επέτειοι'&&x.type==='holidays'); }
+function renderOTD(){
+  const el=$('otd'); if(!el) return;
+  const list=otdItems.filter(otdMatch), show=list.slice(0,otdN);
+  el.innerHTML='<div class="chips">'+OW.map(([k,l])=>'<button class="chip'+(k===otdWhich?' on':'')+'" data-w="'+k+'">'+l+'</button>').join('')+'</div>'+
+    '<div class="chips">'+OF.map(f=>'<button class="chip'+(f===otdF?' on':'')+'" data-f="'+f+'">'+f+'</button>').join('')+'</div>'+
+    (show.length ? show.map(x=>'<div class="ot" data-notr><b>'+esc(x.year)+'</b>'+(x.year?' · ':'')+esc(x.text)+' <span class="sub">· '+OTL[x.type]+'</span></div>').join('') : '<p class="sub">Δεν υπάρχουν εγγραφές σε αυτή την κατηγορία.</p>')+
+    (list.length>otdN?'<button class="link" data-more="1">Περισσότερα</button>':'')+
+    '<div class="sub" style="font-size:.8rem;margin-top:8px">'+otdSrc+'</div>';
+}
+$('otd').onclick=e=>{ const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.w){ otdWhich=b.dataset.w; otdKey=''; otdF='Όλα'; otdN=8; loadOTD(lastD); }
+  else if(b.dataset.f){ otdF=b.dataset.f; otdN=8; renderOTD(); }
+  else if(b.dataset.more){ otdN+=8; renderOTD(); } };
+async function loadOTD(d){
+  const el=$('otd'); if(!el||!d||!d.current) return;
+  const [,m,dd]=d.current.time.slice(0,10).split('-').map(Number), key=otdWhich+':'+m+'-'+dd;
+  if(key===otdKey) return;
+  const C=store.get('otd2')||{}, mm=String(m).padStart(2,'0'), dd2=String(dd).padStart(2,'0');
+  const link=(host,title)=>'<a href="https://'+host+'.wikipedia.org/wiki/'+encodeURIComponent(title)+'" style="color:#9cc4ff">Βικιπαίδεια</a>';
+  if(C[key]){ otdItems=C[key].items; otdSrc=C[key].src; otdKey=key; renderOTD(); return; }
+  el.innerHTML='Φόρτωση…';
+  let items=[], src='';
+  try{
+    if(otdWhich==='el'){
+      for(const title of [dd+' '+MG[m-1], dd+'η '+MG[m-1]]){
+        const r=await jget('https://el.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&exsectionformat=wiki&redirects=1&format=json&origin=*&titles='+encodeURIComponent(title));
+        const p=r.query&&r.query.pages&&Object.values(r.query.pages)[0];
+        if(p && !p.missing && p.extract){ const it=parseOTD(p.extract); if(it.length>=3){ items=it; src='Πηγή: '+link('el',title)+' (ελληνική, CC BY-SA). Η κατηγοριοποίηση γίνεται αυτόματα και μπορεί να έχει λάθη.'; break; } }
+      }
+    }
+    if(items.length<3){
+      const r=await jget('https://en.wikipedia.org/api/rest_v1/feed/onthisday/all/'+mm+'/'+dd2);
+      const f=(a,t)=>(a||[]).map(x=>({type:t,year:String(x.year||''),text:String(x.text||'').replace(/\s+/g,' '),cat:ocat(x.text||'')})).filter(x=>x.text);
+      items=f(r.events,'events').concat(f(r.births,'births'),f(r.deaths,'deaths')).concat((r.holidays||[]).map(x=>({type:'holidays',year:'',text:String(x.text||''),cat:'Ιστορία'})).filter(x=>x.text));
+      src='Πηγή: '+link('en','Wikipedia:Selected_anniversaries')+' (αγγλική, CC BY-SA). Τα κείμενα είναι στα αγγλικά. Η κατηγοριοποίηση γίνεται αυτόματα.';
+    }
+    if(!items.length) throw new Error('empty');
+    items=orderOTD(items).slice(0,160); otdItems=items; otdSrc=src; otdKey=key;
+    C[key]={items,src}; const ks=Object.keys(C); while(ks.length>4) delete C[ks.shift()];
+    store.set('otd2',C);
+    renderOTD();
+  }catch(e){ el.innerHTML='<p class="sub">Δεν φορτώθηκαν τα «Σαν σήμερα». Δοκίμασε ξανά αργότερα.</p>'; }
+}
+
+/* ---------- Ειδοποίηση «νέα έκδοση» ---------- */
+$('upBtn').onclick=()=>location.reload();
+/* ---------- Βροχή τα επόμενα 60+ λεπτά (δεδομένα ανά 15 λεπτά) ---------- */
+function nowcast(d){
+  const m=d.minutely_15; if(!m||!m.time||!m.precipitation||!d.current) return '';
+  const now=Date.parse(d.current.time+'Z')/60000, T=m.time.map(t=>Date.parse(t+'Z')/60000), P=m.precipitation.map(v=>v||0), wet=k=>P[k]>=0.1;
+  const j=T.findIndex(t=>t>now); if(j<0) return '';
+  if(wet(j)){
+    let e=-1; for(let k=j+1;k<P.length;k++) if(!wet(k)){ e=k; break; }
+    if(e<0) return 'Βρέχει τώρα και πιθανόν για τις επόμενες 2 ώρες (εκτίμηση ανά 15 λεπτά).';
+    return 'Βρέχει τώρα, θα σταματήσει σε περίπου '+Math.max(5,Math.round((T[e]-15-now)/5)*5)+' λεπτά (εκτίμηση ανά 15 λεπτά).';
+  }
+  for(let k=j+1;k<P.length;k++) if(wet(k)){ const mins=Math.round((T[k]-15-now)/5)*5; return mins<=5?'Βροχή σε λίγα λεπτά (εκτίμηση ανά 15 λεπτά).':'Βροχή σε περίπου '+mins+' λεπτά (εκτίμηση ανά 15 λεπτά).'; }
+  return '';
+}
+/* ---------- Σύγκριση με το κλίμα (μέσος όρος 1991–2020, ERA5 μέσω Open-Meteo) ---------- */
+function climNormals(daily){
+  const sx={}, sn={}, cn={};
+  daily.time.forEach((t,k)=>{ const x=daily.temperature_2m_max[k], n=daily.temperature_2m_min[k]; if(x==null||n==null) return; const md=t.slice(5); sx[md]=(sx[md]||0)+x; sn[md]=(sn[md]||0)+n; cn[md]=(cn[md]||0)+1; });
+  const keys=Object.keys(cn).sort(), mx=keys.map(k=>sx[k]/cn[k]), mn=keys.map(k=>sn[k]/cn[k]), N=keys.length, out={max:{},min:{}};
+  keys.forEach((k,i)=>{ let a=0,b=0; for(let o=-3;o<=3;o++){ const q=(i+o+N)%N; a+=mx[q]; b+=mn[q]; } out.max[k]=Math.round(a/7*10)/10; out.min[k]=Math.round(b/7*10)/10; });
+  return out;
+}
+let climBusy=false;
+async function loadClim(){
+  const el=$('clim'); if(!el||!lastD||climBusy) return;
+  const key='clim:'+place.lat.toFixed(2)+','+place.lon.toFixed(2); let C=store.get(key);
+  try{
+    if(!C){ climBusy=true; const a=await jget('https://archive-api.open-meteo.com/v1/archive?latitude='+place.lat+'&longitude='+place.lon+'&start_date=1991-01-01&end_date=2020-12-31&daily=temperature_2m_max,temperature_2m_min&timezone=auto'); C=climNormals(a.daily); store.set(key,C); climBusy=false; }
+    const md=lastD.current.time.slice(5,10), norm=C.max[md], t=lastD.daily.temperature_2m_max[0]; if(norm==null) return;
+    const dd=R(t)-R(norm);
+    el.innerHTML='Σήμερα η μέγιστη ('+R(t)+'°) είναι '+(dd===0?'κοντά στον μέσο όρο της ημερομηνίας':Math.abs(dd)+'° '+(dd>0?'πάνω από τον μέσο όρο της ημερομηνίας':'κάτω από τον μέσο όρο της ημερομηνίας'))+' ('+R(norm)+'°). Μέσος όρος από αναλύσεις ERA5 (Open-Meteo), 1991–2020.';
+  }catch(e){ climBusy=false; el.textContent=''; }
+}
+/* ---------- Δεύτερη γνώμη: MET Norway, και εφεδρική προβολή ---------- */
+const symText=s=>{ s=String(s||''); return /thunder/.test(s)?'Καταιγίδα':/heavysnow/.test(s)?'Έντονη χιονόπτωση':/snow/.test(s)?'Χιόνι':/sleet/.test(s)?'Χιονόνερο':/heavyrain/.test(s)?'Ισχυρή βροχή':/lightrain|lightshowers/.test(s)?'Ασθενής βροχή':/rain|showers/.test(s)?'Βροχή':/fog/.test(s)?'Ομίχλη':/partlycloudy/.test(s)?'Λίγα σύννεφα':/cloudy/.test(s)?'Συννεφιά':/fair/.test(s)?'Κυρίως αίθριος':/clearsky/.test(s)?'Αίθριος':'—'; };
+let metAt=0, metKey='';
+async function loadMet(d){
+  const el=$('met'); if(!el) return;
+  const key=place.lat.toFixed(3)+','+place.lon.toFixed(3); if(key===metKey && Date.now()-metAt<30*60000) return;
+  try{
+    const r=await jget('/api/met?lat='+place.lat.toFixed(3)+'&lon='+place.lon.toFixed(3));
+    const rows=r.rows.slice(0,24), T=rows.map(x=>x.t).filter(v=>v!=null), P=rows.reduce((s,x)=>s+(x.p||0),0);
+    const h=d.hourly, nowH=d.current.time.slice(0,13)+':00'; let i0=h.time.findIndex(t=>t>=nowH); if(i0<0) i0=0;
+    const OT=h.temperature_2m.slice(i0,i0+24), OP=h.precipitation.slice(i0,i0+24).reduce((s,v)=>s+(v||0),0);
+    const rg=a=>R(Math.min(...a))+'–'+R(Math.max(...a))+'°', agree=Math.abs(Math.max(...T)-Math.max(...OT))<=2 && Math.abs(P-OP)<=2;
+    metKey=key; metAt=Date.now();
+    el.innerHTML='<b>Επόμενες 24 ώρες</b><br>Θερμοκρασία: Open-Meteo '+rg(OT)+' · MET Norway '+rg(T)+'<br>Βροχή: Open-Meteo '+OP.toFixed(1)+' mm · MET Norway '+P.toFixed(1)+' mm<br><b style="color:'+(agree?'#8ff0b0':'#ffd966')+'">'+(agree?'Οι δύο πηγές συμφωνούν.':'Οι δύο πηγές διαφέρουν — η πρόγνωση είναι πιο αβέβαιη.')+'</b><div class="sub" style="font-size:.8rem;margin-top:6px">Δεδομένα: <a href="https://www.met.no/en" style="color:#9cc4ff">MET Norway</a> (CC BY 4.0).</div>';
+  }catch(e){ el.textContent='Δεν φορτώθηκε η δεύτερη γνώμη.'; }
+}
+function renderFallback(rows){
+  const el=$('fb'), r0=rows[0], f=ms=>new Date(ms).toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit'});
+  el.hidden=false;
+  el.innerHTML='<b>Το Open-Meteo δεν απάντησε. Εμφανίζονται δεδομένα από MET Norway (περιορισμένη προβολή).</b><div style="font-size:3.2rem;font-weight:200;margin:8px 0">'+R(r0.t)+'°</div><div>'+symText(r0.sym)+' · '+fW((r0.wind||0)*3.6)+'</div>'+
+    rows.slice(1,13).map(x=>'<div class="ot" style="display:flex;justify-content:space-between;gap:8px"><span>'+f(Date.parse(x.time))+'</span><span>'+R(x.t)+'°</span><span>'+symText(x.sym)+'</span><span>'+(x.p?x.p.toFixed(1)+' mm':'')+'</span></div>').join('')+
+    '<div class="sub" style="font-size:.8rem;margin-top:6px">Δεδομένα: <a href="https://www.met.no/en" style="color:#9cc4ff">MET Norway</a> (CC BY 4.0).</div>';
+}
+/* ---------- Προσαρμογή οθόνης ---------- */
+const SECN={stats:'Στατιστικά',favsum:'Αγαπημένες τοποθεσίες',hours:'Επόμενες ώρες',chart:'Θερμοκρασία και βροχή (24 ώρες)',outdoor:'UV και ώρα εξόδου',cypanel:'Για την Κύπρο',hist:'Σύγκριση με χθες',fun:'Fun fact της ημέρας',otd:'Σαν σήμερα',sun:'Ήλιος και Σελήνη',air:'Ποιότητα αέρα και γύρη',sea:'Θάλασσα',radarBtn:'Ραντάρ βροχής',days:'Επόμενες 7 ημέρες',unc:'Πόσο σίγουρη είναι η πρόγνωση',met:'Δεύτερη γνώμη · MET Norway'};
+let DEF_ORDER=[];
+let LY=Object.assign({order:[],hidden:{},collapsed:{}},store.get('layout'));
+const saveLY=()=>store.set('layout',LY);
+function setupSections(){
+  const view=$('view'), groups=[]; let g=null;
+  const flush=()=>{ if(g&&g.length) groups.push(g); g=null; };
+  [...view.children].forEach(n=>{
+    if(n.classList.contains('hero')||n.id==='foot'||n.id==='install'){ flush(); return; }
+    if(n.tagName==='H2'){ flush(); g=[n]; return; }
+    if(['stats','favsum','cypanel'].includes(n.id)){ flush(); groups.push([n]); return; }
+    if(g) g.push(n); else g=[n];
+  });
+  flush();
+  groups.forEach(nodes=>{
+    let key=''; for(const n of nodes){ if(n.id){ key=n.id; break; } const c=n.querySelector&&n.querySelector('[id]'); if(c){ key=c.id; break; } }
+    const w=document.createElement('section'); w.className='sec'+(key==='official'?' fixed':''); w.dataset.sec=key;
+    nodes[0].before(w); nodes.forEach(x=>w.appendChild(x));
+  });
+  DEF_ORDER=[...view.querySelectorAll(':scope > .sec:not(.fixed)')].map(x=>x.dataset.sec);
+}
+function applyLayout(){
+  const view=$('view'), secs=[...view.querySelectorAll(':scope > .sec')], mov=secs.filter(s=>!s.classList.contains('fixed'));
+  const keys=mov.map(s=>s.dataset.sec), base=DEF_ORDER.filter(k=>keys.includes(k)).concat(keys.filter(k=>!DEF_ORDER.includes(k))), ord=LY.order.filter(k=>keys.includes(k)).concat(base.filter(k=>!LY.order.includes(k))), foot=$('foot');
+  ord.forEach(k=>view.insertBefore(mov.find(s=>s.dataset.sec===k),foot));
+  secs.forEach(s=>{ const k=s.dataset.sec, f=s.classList.contains('fixed'); s.classList.toggle('hide',!f&&!!LY.hidden[k]); s.classList.toggle('col',!f&&!!LY.collapsed[k]); });
+  requestAnimationFrame(()=>{ try{ lzCheck(); }catch(e){} });
+}
+function layoutKeys(){ return [...$('view').querySelectorAll(':scope > .sec:not(.fixed)')].map(s=>s.dataset.sec); }
+function renderLayout(){
+  const ks=layoutKeys();
+  $('lList').innerHTML=ks.map((k,i)=>'<div class="ldrow"><label><input type="checkbox" data-v="'+k+'"'+(LY.hidden[k]?'':' checked')+'> '+(SECN[k]||k)+'</label><span><button class="ldb" data-u="'+k+'" aria-label="Μετακίνηση πάνω"'+(i===0?' disabled':'')+'>▲</button><button class="ldb" data-d="'+k+'" aria-label="Μετακίνηση κάτω"'+(i===ks.length-1?' disabled':'')+'>▼</button></span></div>').join('');
+}
+$('lList').onclick=e=>{
+  const b=e.target.closest('[data-u],[data-d]'), ck=e.target.closest('[data-v]');
+  if(ck){ LY.hidden[ck.dataset.v]=!ck.checked; saveLY(); applyLayout(); return; }
+  if(!b) return;
+  const ks=layoutKeys(), k=b.dataset.u||b.dataset.d, i=ks.indexOf(k), j=b.dataset.u?i-1:i+1;
+  if(i<0||j<0||j>=ks.length) return;
+  [ks[i],ks[j]]=[ks[j],ks[i]]; LY.order=ks; saveLY(); applyLayout(); renderLayout();
+};
+$('layoutBtn').onclick=()=>{ $('sdlg').close(); renderLayout(); $('ldlg').showModal(); };
+$('lClose').onclick=()=>$('ldlg').close();
+$('lReset').onclick=()=>{ LY={order:[],hidden:{},collapsed:{}}; saveLY(); applyLayout(); renderLayout(); };
+$('view').addEventListener('click',e=>{ const h=e.target.closest('.sec > h2'); if(!h) return; const s=h.parentNode; if(s.classList.contains('fixed')) return; const k=s.dataset.sec; LY.collapsed[k]=!LY.collapsed[k]; saveLY(); applyLayout(); });
+/* ---------- Φόρτωση ενοτήτων μόνο όταν φτάνεις σε αυτές ---------- */
+var LZ={}, lzIO=null;
+const secEl=k=>document.querySelector('#view > .sec[data-sec="'+k+'"]');
+const nearView=el=>{ const r=el.getBoundingClientRect(); return r.height>0 && r.bottom>-400 && r.top<innerHeight+400; };
+function lzRun(k){
+  const f=LZ&&LZ[k]; if(!f) return; const el=secEl(k);
+  if(el&&(el.classList.contains('hide')||el.classList.contains('col'))) return;
+  LZ[k]=null;
+  try{ const r=f(); if(r&&r.catch) r.catch(e=>logErr((e&&e.message)||e)); }catch(e){ logErr(e.message); }
+}
+function lazy(k,f){ LZ[k]=f; const el=secEl(k); if(!lzIO||!el){ lzRun(k); return; } if(!$('view').hidden && nearView(el)) lzRun(k); }
+function lzCheck(){ if(!LZ) return; Object.keys(LZ).forEach(k=>{ if(!LZ[k]) return; const el=secEl(k); if(el&&nearView(el)) lzRun(k); }); }
+if('IntersectionObserver' in window) lzIO=new IntersectionObserver(es=>es.forEach(x=>{ if(x.isIntersecting) lzRun(x.target.dataset.sec); }),{rootMargin:'400px 0px'});
+try{ setupSections(); applyLayout(); }catch(e){ console.log('layout error',e); }
+if(lzIO) document.querySelectorAll('#view > .sec').forEach(x=>lzIO.observe(x));
+/* ---------- Πρώτη οθόνη εισαγωγής ---------- */
+function maybeOnboard(){ if(store.get('onb')) return; setTimeout(()=>{ if(!store.get('onb') && !$('odlg').open) $('odlg').showModal(); },900); }
+$('oGo').onclick=()=>{ store.set('onb',1); $('odlg').close(); };
+/* ---------- Αναφορά προβλήματος ---------- */
+const ERRS=store.get('errs')||[];
+function logErr(m){ ERRS.push({t:Date.now(),m:String(m).slice(0,200)}); while(ERRS.length>8) ERRS.shift(); store.set('errs',ERRS); }
+addEventListener('error',e=>logErr(e.message+' @'+String(e.filename||'').split('/').pop()+':'+e.lineno));
+addEventListener('unhandledrejection',e=>logErr('Promise: '+((e.reason&&e.reason.message)||e.reason)));
+async function buildReport(){
+  const L=[], tz=(lastD&&lastD.timezone)||Intl.DateTimeFormat().resolvedOptions().timeZone;
+  L.push('Καιρός v'+APP_VERSION+' · '+((matchMedia('(display-mode: standalone)').matches||navigator.standalone)?'εγκατεστημένη':'browser')+' · '+LANG+' · '+(navigator.onLine?'online':'offline'));
+  L.push('Συσκευή: '+navigator.userAgent);
+  L.push('Οθόνη: '+innerWidth+'×'+innerHeight+' @'+(devicePixelRatio||1)+'x · ζώνη ώρας: '+tz);
+  L.push('Τοποθεσία (στρογγυλεμένη): '+(place?place.lat.toFixed(1)+', '+place.lon.toFixed(1):'—'));
+  const c=store.get('wx'); L.push('Τελευταία λήψη δεδομένων: '+(c?new Date(c.at).toLocaleString(LOC):'—'));
+  L.push('Ειδοποιήσεις: άδεια='+(('Notification' in window)?Notification.permission:'n/a')+' · ενεργές στην εφαρμογή='+NP.on);
+  try{
+    const sub=('serviceWorker' in navigator && 'PushManager' in window)?await getSub():null; L.push('Συνδρομή push: '+(sub?'ναι':'όχι'));
+    if(sub){ const r=await napi('/api/diag',{endpoint:sub.endpoint});
+      if(r.ok){ const j=await r.json(); L.push('Server: τελευταίος αυτόματος έλεγχος '+(j.last?Math.round((Date.now()-j.last.at)/60000)+' λεπτά πριν':'ποτέ')+(j.last&&j.last.errors&&j.last.errors.length?' · σφάλματα: '+j.last.errors.join('; '):'')+' · ώρες ησυχίας='+j.prefs.quiet+' · πρωινή περίληψη='+j.prefs.morn+' · αγαπημένες='+j.prefs.favAlerts+' · τύποι που ειδοποίησαν: '+(j.sentKeys.join(',')||'—')); }
+      else L.push('Server: απάντηση '+r.status); }
+  }catch(e){ L.push('Server: σφάλμα '+e.message); }
+  L.push('Ρυθμίσεις ειδοποιήσεων: '+JSON.stringify(NP));
+  L.push('Σφάλματα εφαρμογής: '+(ERRS.length?ERRS.map(x=>new Date(x.t).toLocaleTimeString(LOC)+' '+x.m).join(' | '):'κανένα'));
+  return L.join('\n');
+}
+$('shareBtn').onclick=()=>{ $('sdlg').close(); $('share').click(); };
+$('reportBtn').onclick=async()=>{ $('sdlg').close(); $('rText').value='Συλλογή στοιχείων…'; $('rdlg').showModal(); $('rText').value=await buildReport(); };
+$('rClose').onclick=()=>$('rdlg').close();
+$('rCopy').onclick=async()=>{ try{ await navigator.clipboard.writeText($('rText').value); $('rCopy').textContent='Αντιγράφηκε ✓'; setTimeout(()=>{ $('rCopy').textContent='Αντιγραφή'; },2000); }catch(e){ $('rText').select(); } };
+$('rShare').onclick=async()=>{ try{ if(navigator.share) await navigator.share({text:$('rText').value}); else $('rCopy').click(); }catch(e){} };
+/* ---------- Ειδοποιήσεις: ιστορικό ---------- */
+async function nHist(){
+  try{
+    const sub=await getSub(); if(!sub) throw new Error('Δεν υπάρχει ενεργή συνδρομή. Πάτα «Ενεργοποίηση».');
+    const r=await napi('/api/history',{endpoint:sub.endpoint}); if(!r.ok) throw new Error('Σφάλμα ('+r.status+')');
+    const j=await r.json();
+    nmsg(j.hist.length?'Τελευταίες ειδοποιήσεις:\n'+j.hist.map(x=>new Date(x.t).toLocaleString(LOC,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+' · '+x.title+' — '+x.body).join('\n'):'Δεν έχει σταλεί καμία ειδοποίηση ακόμα.');
+  }catch(e){ nmsg(e.message,true); }
+}
+$('nHist').onclick=nHist;
+
+/* ---------- Θυρίδα ειδοποιήσεων: ό,τι ήρθε ως push φαίνεται ξανά εδώ ---------- */
+const IDB=()=>new Promise((res,rej)=>{ const r=indexedDB.open('kairos',1); r.onupgradeneeded=()=>{ r.result.createObjectStore('inbox',{keyPath:'id'}); r.result.createObjectStore('meta'); }; r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); });
+const ITX=(db,st,mode,f)=>new Promise((res,rej)=>{ const t=db.transaction(st,mode); const o=f(t.objectStore(st)); t.oncomplete=()=>res(o&&o.result); t.onerror=()=>rej(t.error); });
+async function inboxAll(){ try{ const db=await IDB(); return ((await ITX(db,'inbox','readonly',s=>s.getAll()))||[]).sort((a,b)=>b.t-a.t); }catch(e){ return []; } }
+let inboxSrv=[];
+async function inboxMerged(){
+  const loc=await inboxAll(), seen=new Set(loc.map(x=>x.id)), sig=new Set(loc.map(x=>x.t+'|'+x.title));
+  // όσα έστειλε ο server πριν από αυτή την έκδοση ή όσο ήταν κλειστό το κινητό
+  const extra=inboxSrv.filter(x=>!(x.id&&seen.has(x.id))&&!sig.has(x.t+'|'+x.title)).map(x=>({...x,id:x.id||('s'+x.t),read:true,srv:true}));
+  return loc.concat(extra).sort((a,b)=>b.t-a.t);
+}
+async function inboxBadge(){
+  const n=(await inboxAll()).filter(x=>!x.read).length, b=$('bellN');
+  b.textContent=n>9?'9+':n; b.hidden=!n;
+  try{ if(navigator.setAppBadge){ if(n) navigator.setAppBadge(n); else navigator.clearAppBadge(); } }catch(e){}
+}
+const iWhen=t=>new Date(t).toLocaleString(LOC,{weekday:'short',day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
+const iCard=(x,big)=>'<div class="ibox'+(big?' sel':'')+(x.read||big?'':' unread')+'" data-i="'+esc(x.id)+'"><div class="sub">'+esc(iWhen(x.t))+'</div><b>'+esc(x.title)+'</b><div class="ibody'+(big?'':' clip')+'">'+esc(x.body||'')+'</div></div>';
+async function openInbox(focusId){
+  const all=await inboxMerged(), sel=focusId?all.find(x=>x.id===focusId):null;
+  $('iSel').innerHTML=sel?'<div class="sub" style="margin:2px 0 6px">'+trs('Η ειδοποίηση που πάτησες')+'</div>'+iCard(sel,true):'';
+  const rest=all.filter(x=>x!==sel);
+  $('iList').innerHTML=(sel&&rest.length?'<div class="sub" style="margin:14px 0 6px">'+trs('Προηγούμενες')+'</div>':'')+(rest.length?rest.map(x=>iCard(x,false)).join(''):(sel?'':'<p class="sub">'+trs('Δεν έχει έρθει καμία ειδοποίηση ακόμα.')+'</p>'));
+  if(!$('idlg').open) $('idlg').showModal();
+  $('idlg').scrollTop=0;
+  // σημειώνονται ως διαβασμένες
+  try{ const db=await IDB(); for(const x of all) if(!x.srv&&!x.read){ x.read=true; await ITX(db,'inbox','readwrite',s=>s.put({id:x.id,t:x.t,title:x.title,body:x.body,read:true})); } }catch(e){}
+  inboxBadge();
+}
+$('iList').onclick=e=>{ const c=e.target.closest('.ibox'); if(c) c.querySelector('.ibody').classList.toggle('clip'); };
+$('bell').onclick=()=>openInbox();
+$('iClose').onclick=()=>$('idlg').close();
+$('iClr').onclick=async()=>{ try{ const db=await IDB(); await ITX(db,'inbox','readwrite',s=>s.clear()); }catch(e){} inboxSrv=[]; openInbox(); };
+async function inboxSync(){ // συμπληρώνει από το ιστορικό του server (τελευταίες 30)
+  try{ if(!('serviceWorker' in navigator)||!('PushManager' in window)) return; const sub=await getSub(); if(!sub) return;
+    const r=await napi('/api/history',{endpoint:sub.endpoint}); if(r.ok) inboxSrv=(await r.json()).hist||[]; }catch(e){}
+}
+async function inboxPending(){ // άνοιγμα από πάτημα ειδοποίησης
+  let id=new URLSearchParams(location.search).get('n');
+  if(id!=null) history.replaceState(null,'',location.pathname);
+  try{ const db=await IDB(); const p=await ITX(db,'meta','readonly',s=>s.get('open')); if(p!=null){ id=id||p; await ITX(db,'meta','readwrite',s=>s.delete('open')); } }catch(e){}
+  if(id!=null){ await inboxSync(); openInbox(id); }
+}
+if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message',e=>{
+  const d=e.data||{};
+  if(d.type==='notif-open'){ (async()=>{ try{ const db=await IDB(); await ITX(db,'meta','readwrite',s=>s.delete('open')); }catch(_){} openInbox(d.id); })(); }
+  if(d.type==='notif-new') inboxBadge();
+});
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ inboxPending(); inboxBadge(); } });
+inboxBadge(); inboxPending(); setTimeout(inboxSync,4000);
+
+/* ---------- Λεπτομέρειες ημέρας με πάτημα ---------- */
+let openDay=-1;
+function dayDetail(d,k){
+  const day=d.daily.time[k], h=d.hourly, nowH=d.current.time.slice(0,13)+':00';
+  let idx=[]; h.time.forEach((t,j)=>{ if(t.slice(0,10)===day && (k>0||t>=nowH)) idx.push(j); });
+  if(!idx.length) return '<div class="dd"><p class="sub">Δεν υπάρχουν ωριαία δεδομένα για αυτή την ημέρα.</p></div>';
+  const g=j=>h.wind_gusts_10m[j], uv=j=>(h.uv_index||[])[j];
+  const G=Math.max(0,...idx.map(g).filter(v=>v!=null)), PPm=Math.max(0,...idx.map(j=>h.precipitation_probability[j]||0)), UVm=Math.max(0,...idx.map(j=>uv(j)||0));
+  const mm=d.daily.precipitation_sum?d.daily.precipitation_sum[k]:idx.reduce((s,j)=>s+(h.precipitation[j]||0),0);
+  const cells=idx.map(j=>{ const p=h.precipitation_probability[j], r=h.precipitation[j]||0, u=uv(j)||0;
+    return '<div class="h"><small>'+h.time[j].slice(11,13)+':00</small><span class="e">'+icon(h.weather_code[j],h.is_day[j],24)+'</span><b>'+R(h.temperature_2m[j])+'°</b>'+
+      '<span class="p'+(p>=30?' hi':'')+'">'+(p?DROP+p+'%':'')+'</span><span class="x">'+(r>=0.1?r.toFixed(1)+' mm':'')+'</span><span class="x">💨 '+fW(g(j)||0)+'</span><span class="x">'+(u>=1?'UV '+Math.round(u):'')+'</span></div>'; }).join('');
+  return '<div class="dd"><div class="ddsum">Μέγιστη '+R(d.daily.temperature_2m_max[k])+'° · Ελάχιστη '+R(d.daily.temperature_2m_min[k])+'°<br>Βροχή: '+(mm||0).toFixed(1)+' mm · πιθανότητα έως '+PPm+'%<br>Ριπές έως '+fW(G)+' · UV έως '+Math.round(UVm)+'<br>Ανατολή '+d.daily.sunrise[k].slice(11,16)+' · Δύση '+d.daily.sunset[k].slice(11,16)+'</div><div class="hours ddh">'+cells+'</div></div>';
+}
+function renderDays(d){
+  const mn=Math.min(...d.daily.temperature_2m_min), mx=Math.max(...d.daily.temperature_2m_max), span=(mx-mn)||1;
+  $('days').innerHTML = d.daily.time.map((day,k)=>{
+    const lo=d.daily.temperature_2m_min[k], hi=d.daily.temperature_2m_max[k], op=k===openDay;
+    const name = k===0?'Σήμερα':new Date(day+'T12:00').toLocaleDateString(LOC,{weekday:'short'});
+    return '<button class="d" data-k="'+k+'" aria-expanded="'+op+'"><span class="n">'+name+'</span><span>'+icon(d.daily.weather_code[k],true,22)+'</span><span class="lo">'+R(lo)+'°</span>'+
+      '<span class="bar"><i style="left:'+((lo-mn)/span*100)+'%;right:'+(100-(hi-mn)/span*100)+'%"></i></span>'+
+      '<span class="hi">'+R(hi)+'°</span><span class="chev" aria-hidden="true">'+(op?'▴':'▾')+'</span></button>'+(op?dayDetail(d,k):'');
+  }).join('');
+}
+$('days').addEventListener('click',e=>{ const b=e.target.closest('.d[data-k]'); if(!b||!lastD) return; const k=+b.dataset.k; openDay=openDay===k?-1:k; renderDays(lastD); const nb=$('days').querySelector('.d[data-k="'+k+'"]'); if(nb) nb.focus({preventScroll:true}); });
+
+/* ---------- Μέγεθος γραμμάτων ---------- */
+const FSZ={s:'93.75%',m:'100%',l:'118.75%'};
+function applyFS(v){ document.documentElement.style.fontSize=FSZ[v]||'100%'; }
+$('s_fs').onchange=()=>{ const v=$('s_fs').value; store.set('fs',v); applyFS(v); };
+
+/* ---------- Προειδοποίηση αν σταματήσει ο αυτόματος έλεγχος (cron) ---------- */
+let cronAt=0;
+async function checkCron(force){
+  const el=$('cronwarn'); if(!el) return;
+  if(!NP.on){ el.hidden=true; return; }
+  if(!force && Date.now()-cronAt<10*60000) return;
+  cronAt=Date.now();
+  try{
+    const r=await fetch('/api/status',{cache:'no-store'}); if(!r.ok) throw new Error(r.status);
+    const j=await r.json(), L=j.last, age=L?Math.round((Date.now()-L.at)/60000):null;
+    if(L && age<=60){ el.hidden=true; return; }
+    const ago=age==null?'':age<120?age+' λεπτά':Math.round(age/60)+' ώρες';
+    el.innerHTML='<b>⚠️ '+(L?'Ο αυτόματος έλεγχος ειδοποιήσεων δεν έχει τρέξει εδώ και '+ago+'.':'Ο αυτόματος έλεγχος ειδοποιήσεων δεν έχει τρέξει ποτέ.')+'</b><br>Μέχρι να διορθωθεί, δεν θα έρχονται ειδοποιήσεις push. Έλεγξε τη δουλειά σου στο cron-job.org: μπορεί να έχει απενεργοποιηθεί ή να έχει λάθος διεύθυνση.';
+    el.hidden=false;
+  }catch(e){ el.hidden=true; }
+}
+/* ---------- Αγγλικά (μετάφραση φράσεων, ενεργή μόνο όταν η γλώσσα είναι English) ---------- */
+const EN={
+'Καιρός':'Weather','Αλλαγή τοποθεσίας':'Change location','Ρυθμίσεις':'Settings','Ανανέωση':'Refresh','Κοινοποίηση':'Share','Γλώσσα':'Language',
+'Επόμενες ώρες':'Next hours','Θερμοκρασία και βροχή (24 ώρες)':'Temperature and rain (24 hours)','Ήλιος και Σελήνη':'Sun and Moon','Ποιότητα αέρα και γύρη':'Air quality and pollen',
+'Φόρτωση…':'Loading…','Θάλασσα':'Sea','Ραντάρ βροχής':'Rain radar','Εμφάνιση ραντάρ':'Show radar','Αναπαραγωγή':'Play',
+'Τελευταίες 2 ώρες (δεν είναι πρόγνωση). Πηγή:':'Last 2 hours (not a forecast). Source:','Το μέγιστο ζουμ είναι 7.':'Maximum zoom is 7.',
+'Επόμενες 7 ημέρες':'Next 7 days','Πόσο σίγουρη είναι η πρόγνωση':'How reliable is the forecast','Εγκατάσταση εφαρμογής':'Install app','Κλείσιμο':'Close',
+'Θερμοκρασία':'Temperature','θερμοκρασία':'temperature','Ταχύτητα ανέμου':'Wind speed','Τοποθεσία':'Location','Αναζήτηση πόλης':'Search city','Χρήση της τρέχουσας τοποθεσίας':'Use current location',
+'Αίθριος':'Clear','Κυρίως αίθριος':'Mostly clear','Λίγα σύννεφα':'Partly cloudy','Συννεφιά':'Overcast','Ομίχλη':'Fog','Παγωμένη ομίχλη':'Freezing fog','Ασθενής ψιχάλα':'Light drizzle','Ψιχάλα':'Drizzle','Έντονη ψιχάλα':'Heavy drizzle','Παγωμένη ψιχάλα':'Freezing drizzle','Ασθενής βροχή':'Light rain','Βροχή':'Rain','Ισχυρή βροχή':'Heavy rain','Παγωμένη βροχή':'Freezing rain','Ασθενής χιονόπτωση':'Light snow','Χιονόπτωση':'Snow','Έντονη χιονόπτωση':'Heavy snow','Κόκκοι χιονιού':'Snow grains','Ράντζες βροχής':'Rain showers','Μπόρες':'Showers','Ισχυρές μπόρες':'Heavy showers','Χιονοπτώσεις':'Snow showers','Ισχυρές χιονοπτώσεις':'Heavy snow showers','Καταιγίδα':'Thunderstorm','Καταιγίδα με χαλάζι':'Thunderstorm with hail','Ισχυρή καταιγίδα με χαλάζι':'Severe thunderstorm with hail',
+'Φόρτωση δεδομένων…':'Loading data…','Δεν υπάρχει σύνδεση. Εμφανίζονται τα τελευταία δεδομένα — μπορεί να έχουν αλλάξει.':'No connection. Showing the latest data — it may have changed.','Δεν φορτώθηκαν δεδομένα καιρού. Έλεγξε τη σύνδεση και πάτα ανανέωση.':'Weather data failed to load. Check your connection and tap refresh.',
+'Αισθητή':'Feels like','Μέγ.':'High','Ελάχ.':'Low','Πιθανότητα βροχής σήμερα':'Chance of rain today','Άνεμος':'Wind','ριπές':'gusts','Υγρασία':'Humidity','Δείκτης UV (μέγ.)':'UV index (max)','Πίεση':'Pressure','Ανατολή / Δύση':'Sunrise / Sunset',
+'Τώρα':'Now','Σήμερα':'Today','Ενημερώθηκε στις':'Updated at','(παλιά)':'(old)','(παλιά δεδομένα)':'(old data)',
+'Πηγή: Open-Meteo (οι τρέχουσες συνθήκες ενημερώνονται ανά 15 λεπτά).':'Source: Open-Meteo (current conditions update every 15 minutes).',
+'Ανανεώνεται αυτόματα κάθε 5 λεπτά όσο η εφαρμογή είναι ανοιχτή.':'Refreshes automatically every 5 minutes while the app is open.',
+'Οι προγνώσεις γίνονται λιγότερο αξιόπιστες όσο απομακρύνονται στο χρόνο· η πιθανότητα βροχής δείχνει πόσο αβέβαιη είναι η πρόγνωση.':'Forecasts become less reliable the further ahead they go; the chance of rain shows how uncertain the forecast is.',
+'Η τοποθεσία αποθηκεύεται μόνο στη συσκευή σου και στέλνεται στο Open-Meteo για την πρόγνωση.':'Your location is stored only on your device and sent to Open-Meteo for the forecast.',
+'Η συσκευή δεν υποστηρίζει εντοπισμό. Αναζήτησε πόλη.':'This device does not support location. Search for a city.','Εντοπισμός τοποθεσίας…':'Finding your location…','Τρέχουσα τοποθεσία':'Current location',
+'Δεν δόθηκε πρόσβαση στην τοποθεσία. Διάλεξε πόλη χειροκίνητα.':'Location access was not granted. Choose a city manually.','Δεν βρέθηκε.':'Not found.','Η αναζήτηση χρειάζεται σύνδεση.':'Search needs a connection.',
+'Αγαπημένες τοποθεσίες':'Favorite locations','Αγαπημένες':'Favorites','Διαγραφή':'Delete','Δεν φορτώθηκαν οι αγαπημένες τοποθεσίες.':'Favorite locations failed to load.',
+'Γράφημα θερμοκρασίας και βροχής':'Temperature and rain chart','Γραμμή: θερμοκρασία · Μπάρες: βροχή (σύνολο':'Line: temperature · Bars: rain (total','στις επόμενες 24 ώρες)':'in the next 24 hours)',
+'Πολύ καλή':'Very good','Καλή':'Good','Μέτρια':'Moderate','Κακή':'Poor','Πολύ κακή':'Very poor','Εξαιρετικά κακή':'Extremely poor',
+'Σκλήθρο':'Alder','Σημύδα':'Birch','Γρασίδι':'Grass','Αρτεμισία':'Mugwort','Ελιά':'Olive','Αμβροσία':'Ragweed',
+'ευρωπαϊκός δείκτης':'European index','Όζον:':'Ozone:','Γύρη (μέγ. 24 ωρών, κόκκοι/m³):':'Pollen (max 24 h, grains/m³):',
+'καμία σημαντική ή δεν υπάρχουν δεδομένα (το μοντέλο καλύπτει μόνο Ευρώπη και μόνο στην εποχή της κάθε γύρης).':'none significant or no data (the model covers only Europe and only each pollen season).',
+'Δεν φορτώθηκαν δεδομένα ποιότητας αέρα.':'Air quality data failed to load.','Το ραντάρ χρειάζεται σύνδεση και δεν φόρτωσε.':'The radar needs a connection and did not load.',
+'Πιθανή καταιγίδα':'Possible thunderstorm','τώρα':'now','γύρω στις':'around','Βρέχει τώρα':'It is raining now','μέχρι περίπου τις':'until about','πάρε ομπρέλα.':'take an umbrella.','Βροχή γύρω στις':'Rain around','Χιόνι γύρω στις':'Snow around','Ζέστη έως':'Heat up to','πιες νερό, απόφυγε τον ήλιο.':'drink water, avoid the sun.','Κρύο έως':'Cold down to','ντύσου ζεστά.':'dress warmly.','Ριπές ανέμου έως':'Wind gusts up to','Υψηλός δείκτης UV':'High UV index','αντηλιακό.':'sunscreen.','Χωρίς ιδιαίτερα καιρικά φαινόμενα τις επόμενες 12 ώρες.':'No notable weather in the next 12 hours.',
+'Πορεία του ήλιου':'Sun path','Διάρκεια ημέρας':'Day length','Σελήνη: φόρτωση…':'Moon: loading…','Νέα σελήνη':'New moon','Αύξων μηνίσκος':'Waxing crescent','Πρώτο τέταρτο':'First quarter','Αύξουσα σελήνη':'Waxing gibbous','Πανσέληνος':'Full moon','Φθίνουσα σελήνη':'Waning gibbous','Τελευταίο τέταρτο':'Last quarter','Φθίνων μηνίσκος':'Waning crescent',
+'δεν συμβαίνει σήμερα':'does not happen today','Ανατολή':'Rise','Δύση':'Set','Δεδομένα σελήνης:':'Moon data:','Η φάση και το ποσοστό φωτισμού ισχύουν για το μεσημέρι.':'The phase and illumination apply to noon.','Δεν φορτώθηκαν τα δεδομένα σελήνης από το':'Moon data failed to load from',
+'Δεν υπάρχουν θαλάσσια δεδομένα για αυτή την τοποθεσία (πιθανώς μακριά από την ακτή).':'There is no sea data for this location (probably far from the coast).','Ήρεμη':'Calm','Ελαφρά κυματώδης':'Slight','Κυματώδης':'Moderate','Ταραγμένη':'Rough','Πολύ ταραγμένη':'Very rough','Φουρτουνιασμένη':'Stormy',
+'Κύμα':'Wave','Νερό:':'Water:','Περίοδος κύματος:':'Wave period:','Μέγ. ύψος 24ω:':'Max height 24h:','Μοντέλο χαμηλής ανάλυσης κοντά στην ακτή. Δεν αντικαθιστά τοπικές προειδοποιήσεις για τη θάλασσα.':'Low-resolution model near the coast. It does not replace local sea warnings.','Δεν υπάρχουν ή δεν φορτώθηκαν θαλάσσια δεδομένα για αυτή την τοποθεσία.':'Sea data is unavailable or failed to load for this location.',
+'Υψηλή':'High','Χαμηλή':'Low','ξηρό':'dry','Ημέρα':'Day','Μέγιστη':'High','Συμφωνία':'Agreement','Σύγκριση τριών μοντέλων (ECMWF, GFS, ICON). Μεγάλη διαφορά σημαίνει πιο αβέβαιη πρόγνωση. Δεν είναι επίσημη πιθανότητα.':'Comparison of three models (ECMWF, GFS, ICON). A big difference means a more uncertain forecast. It is not an official probability.','Δεν φορτώθηκε η σύγκριση μοντέλων.':'The model comparison failed to load.',
+'Άφησε για ανανέωση':'Release to refresh','Τράβα για ανανέωση':'Pull to refresh',
+'UV και ώρα εξόδου':'UV and best time to go out','UV ανά ώρα':'UV by hour','Αντηλιακό:':'Sunscreen:','(UV έως':'(UV up to','Δεν χρειάζεται αντηλιακό τις επόμενες 24 ώρες (UV < 3).':'No sunscreen needed in the next 24 hours (UV < 3).','Καλύτερο παράθυρο για έξοδο:':'Best window to go out:','Δεν υπάρχει ώρα που να πληροί όλα τα κριτήρια.':'No hour meets all the criteria.','Κριτήρια: ημέρα, θερμοκρασία':'Criteria: daytime, temperature','πιθανότητα βροχής < 30%, ριπές <':'chance of rain < 30%, gusts <','Ενδεικτικά, δικά μου κριτήρια.':'Indicative, my own criteria.',
+'Σύγκριση με χθες':'Comparison with yesterday','Σήμερα η μέγιστη θερμοκρασία είναι':'Today the high is','υψηλότερη από χθες':'higher than yesterday','χαμηλότερη από χθες':'lower than yesterday','σχεδόν ίδια με χθες':'about the same as yesterday','έναντι':'vs','Τελευταίες 7 ημέρες':'Last 7 days','Μέγιστη και ελάχιστη, από 7 ημέρες πριν μέχρι σήμερα. Δεδομένα μοντέλου, όχι μετρήσεις σταθμού.':'High and low, from 7 days ago to today. Model data, not station measurements.','Δεν φορτώθηκε το ιστορικό.':'History failed to load.',
+'Η κοινοποίηση δεν υποστηρίζεται. Το κείμενο αντιγράφηκε.':'Sharing is not supported. The text was copied.','Η κοινοποίηση απέτυχε.':'Sharing failed.','Καιρός · Open-Meteo':'Weather · Open-Meteo',
+'Δεν αναμένεται βροχή για το υπόλοιπο της ημέρας.':'No rain expected for the rest of the day.','Μικρή πιθανότητα (έως':'Low chance (up to','Πιθανή βροχή:':'Rain likely:','(έως':'(up to','Το ποσοστό κάτω από κάθε ώρα είναι η πιθανότητα βροχής εκείνης της ώρας.':'The percentage under each hour is the chance of rain for that hour.',
+'Επίσημες προειδοποιήσεις · Κύπρος':'Official warnings · Cyprus','Καμία ενεργή προειδοποίηση.':'No active warnings.','Καταιγίδες':'Thunderstorms','Έντονες βροχές':'Heavy rain','Ισχυροί άνεμοι':'Strong winds','Χιόνι / πάγος':'Snow / ice','Υψηλές θερμοκρασίες':'High temperatures','Χαμηλές θερμοκρασίες':'Low temperatures','Κίνδυνος πυρκαγιάς':'Fire danger','Παράκτια φαινόμενα':'Coastal events','Σκόνη':'Dust','Κίτρινη':'Yellow','Πορτοκαλί':'Orange','Κόκκινη':'Red','προειδοποίηση':'warning','Σε ισχύ έως':'In effect until','Ισχύει από':'Valid from','έως':'until',
+'Πηγή: Τμήμα Μετεωρολογίας Κύπρου μέσω':'Source: Cyprus Department of Meteorology via','Για επίσημες προειδοποιήσεις μέσα στην εφαρμογή, βάλε τη διεύθυνση του Worker στις Ρυθμίσεις ⚙. Στο μεταξύ:':'For official warnings inside the app, enter your Worker address in Settings ⚙. Meanwhile:','Δεν φορτώθηκαν οι επίσημες προειδοποιήσεις. Δες':'Official warnings failed to load. See','Διεύθυνση Worker για επίσημες προειδοποιήσεις':'Worker address for official warnings',
+'Μετάβαση στο περιεχόμενο':'Skip to content','Χρόνος ραντάρ':'Radar time','Σχετικά και πηγές':'About and sources','Έκδοση':'Version','Πηγές δεδομένων':'Data sources','Ιδιωτικότητα':'Privacy','Περιορισμοί':'Limitations',
+'Καιρός, ποιότητα αέρα, θάλασσα, ιστορικό και σύγκριση μοντέλων:':'Weather, air quality, sea, history and model comparison:','Επίσημες προειδοποιήσεις: Τμήμα Μετεωρολογίας Κύπρου μέσω':'Official warnings: Cyprus Department of Meteorology via','Ραντάρ βροχής: RainViewer. Χάρτης:':'Rain radar: RainViewer. Map:','Βιβλιοθήκη χάρτη:':'Map library:','Ανατολή, δύση και φάση σελήνης:':'Moon rise, set and phase:',
+'Η τοποθεσία και οι ρυθμίσεις σου αποθηκεύονται μόνο στη συσκευή σου. Δεν υπάρχουν λογαριασμοί, cookies ή αναλυτικά στατιστικά. Οι συντεταγμένες στέλνονται στο Open-Meteo και στο Sunrise-Sunset.org για τα δεδομένα, και ο χάρτης ραντάρ φορτώνει εικόνες από το RainViewer και το OpenStreetMap (που βλέπουν τη διεύθυνση IP σου).':'Your location and settings are stored only on your device. There are no accounts, cookies or analytics. Coordinates are sent to Open-Meteo and Sunrise-Sunset.org for the data, and the radar map loads images from RainViewer and OpenStreetMap (which can see your IP address).',
+'Οι προγνώσεις είναι εκτιμήσεις από μοντέλα και μπορεί να αλλάξουν. Η εφαρμογή δεν αντικαθιστά τις επίσημες ανακοινώσεις. Σε έκτακτη ανάγκη κάλεσε το':'Forecasts are model estimates and may change. The app does not replace official announcements. In an emergency call',
+'Για την Κύπρο':'For Cyprus','Θερμική καταπόνηση:':'Heat stress:','Προσοχή':'Caution','Ιδιαίτερη προσοχή':'Extreme caution','Κίνδυνος':'Danger','Ακραίος κίνδυνος':'Extreme danger','(αισθητή έως':'(feels like up to',
+'Ο κίνδυνος για την υγεία είναι πολύ υψηλός· μείνε σε δροσερό χώρο.':'The health risk is very high; stay somewhere cool.','Απόφυγε την έκθεση στον ήλιο· υπάρχει κίνδυνος θερμοπληξίας.':'Avoid sun exposure; there is a risk of heatstroke.','Περιόρισε τον χρόνο στον ήλιο, πιες πολύ νερό και κάνε διαλείμματα στη σκιά.':'Limit time in the sun, drink plenty of water and take breaks in the shade.','Πιες νερό και απόφυγε έντονη άσκηση στον ήλιο.':'Drink water and avoid strenuous exercise in the sun.',
+'Ενδεικτική κατηγορία με βάση την αισθητή θερμοκρασία (κατηγορίες NWS), όχι επίσημη προειδοποίηση.':'Indicative category based on the apparent temperature (NWS categories), not an official warning.',
+'Συνθήκες που ευνοούν δασικές πυρκαγιές (εκτίμηση της εφαρμογής, όχι επίσημος δείκτης):':'Conditions that favour forest fires (the app\'s estimate, not an official index):','υγρασία':'humidity','Μην ανάβεις φωτιές στην ύπαιθρο. Ο επίσημος κίνδυνος ανακοινώνεται από το Τμήμα Δασών.':'Do not light fires outdoors. The official risk is announced by the Forestry Department.',
+'Έκτακτη ανάγκη:':'Emergency:','Πυρκαγιά σε δάσος:':'Forest fire:','(Τμήμα Δασών)':'(Forestry Department)',
+'Δεν υπάρχει ένδειξη καταπόνησης από ζέστη στις επόμενες 12 ώρες.':'No sign of heat stress in the next 12 hours.',
+'Ειδοποιήσεις':'Notifications','Κοινοποίηση καιρού':'Share weather','Επίσημες προειδοποιήσεις Κύπρου':'Official Cyprus warnings','ελάχιστο επίπεδο:':'minimum level:','Κίτρινη και άνω':'Yellow and above','Πορτοκαλί και άνω':'Orange and above','Μόνο κόκκινες':'Red only','Καταιγίδες και κεραυνοί':'Thunderstorms and lightning','Έντονες βροχές και πλημμύρες':'Heavy rain and floods','ριπές πάνω από':'gusts above','Καύσωνας':'Heatwave','θερμοκρασία από':'temperature from','Παγετός':'Frost','θερμοκρασία έως':'temperature down to','Χιόνι και πάγος':'Snow and ice','Σκόνη (εκτίμηση μοντέλου)':'Dust (model estimate)','Fun fact της ημέρας':'Fun fact of the day',
+'Αεροδρόμια · METAR/TAF':'Airports · METAR/TAF','Ειδοποιήσεις':'Notifications','Η ειδοποίηση που πάτησες':'The notification you tapped','Προηγούμενες':'Earlier','Δεν έχει έρθει καμία ειδοποίηση ακόμα.':'No notifications yet.','Καθαρισμός λίστας':'Clear list','Όχι':'Off','📅 Έγκαιρη ειδοποίηση':'📅 Early warning','1 ημέρα πριν':'1 day before','2 ημέρες πριν':'2 days before','3 ημέρες πριν':'3 days before','5 ημέρες πριν':'5 days before','7 ημέρες πριν':'7 days before','για τα παραπάνω φαινόμενα στην κύρια τοποθεσία. Έρχεται μόλις φανεί στην πρόγνωση και μετά κάθε μέρα στην ώρα της πρωινής περίληψης, μέχρι να έρθει η μέρα. Αν μετακινηθεί σε άλλη μέρα, σου γράφει τη νέα ημερομηνία· αν φύγει από την πρόγνωση, έρχεται ένα μήνυμα ακύρωσης.':'for the events above at your main location. Arrives as soon as it shows up in the forecast, then every day at the morning summary time until the day comes. If it moves to another day, you get the new date; if it leaves the forecast, you get one cancellation message.','Πίεση (στάθμη θάλασσας)':'Pressure (sea level)','Κοντά σε':'Near','Πλησιέστερη ακτή:':'Nearest coast:','(περίπου':'(about','Μετονομασία':'Rename','Νέο όνομα':'New name',
+'Έχει συμπληρωθεί το όριο συσκευών για ειδοποιήσεις (':'The device limit for notifications has been reached (','). Απενεργοποίησε τις ειδοποιήσεις σε μια άλλη συσκευή ή αύξησε το όριο (μεταβλητή MAX_SUBS στο Cloudflare).':'). Turn notifications off on another device or raise the limit (MAX_SUBS variable in Cloudflare).',
+'Μέγεθος γραμμάτων':'Text size','Μικρά':'Small','Κανονικά':'Normal','Μεγάλα':'Large',
+'Πάτα μια μέρα για να δεις τις ώρες της.':'Tap a day to see its hours.','Δεν υπάρχουν ωριαία δεδομένα για αυτή την ημέρα.':'There is no hourly data for this day.','Μέγιστη':'High','Ελάχιστη':'Low','πιθανότητα έως':'chance up to','Ριπές έως':'Gusts up to','UV έως':'UV up to','Ανατολή':'Sunrise','Δύση':'Sunset',
+'Ο αυτόματος έλεγχος ειδοποιήσεων δεν έχει τρέξει εδώ και':'The automatic notification check has not run for','Ο αυτόματος έλεγχος ειδοποιήσεων δεν έχει τρέξει ποτέ.':'The automatic notification check has never run.','λεπτά.':'minutes.','ώρες.':'hours.',
+'Μέχρι να διορθωθεί, δεν θα έρχονται ειδοποιήσεις push. Έλεγξε τη δουλειά σου στο cron-job.org: μπορεί να έχει απενεργοποιηθεί ή να έχει λάθος διεύθυνση.':'Until this is fixed, push notifications will not arrive. Check your job on cron-job.org: it may have been disabled or have a wrong address.',
+
+'Νέα έκδοση διαθέσιμη':'New version available',
+'Βρέχει τώρα και πιθανόν για τις επόμενες 2 ώρες (εκτίμηση ανά 15 λεπτά).':'It is raining now and probably for the next 2 hours (15-minute estimate).','Βρέχει τώρα, θα σταματήσει σε περίπου':'It is raining now, it will stop in about','Βροχή σε λίγα λεπτά (εκτίμηση ανά 15 λεπτά).':'Rain in a few minutes (15-minute estimate).','Βροχή σε περίπου':'Rain in about','λεπτά (εκτίμηση ανά 15 λεπτά).':'minutes (15-minute estimate).',
+'Σήμερα η μέγιστη (':'Today the high (',') είναι':') is','πάνω από τον μέσο όρο της ημερομηνίας':'above the date average','κάτω από τον μέσο όρο της ημερομηνίας':'below the date average','κοντά στον μέσο όρο της ημερομηνίας':'close to the date average','Μέσος όρος από αναλύσεις ERA5 (Open-Meteo), 1991–2020.':'Average from ERA5 reanalysis (Open-Meteo), 1991–2020.',
+'Δεύτερη γνώμη · MET Norway':'Second opinion · MET Norway','Επόμενες 24 ώρες':'Next 24 hours','Οι δύο πηγές συμφωνούν.':'The two sources agree.','Οι δύο πηγές διαφέρουν — η πρόγνωση είναι πιο αβέβαιη.':'The two sources differ — the forecast is more uncertain.','Δεδομένα:':'Data:','Δεν φορτώθηκε η δεύτερη γνώμη.':'The second opinion could not be loaded.',
+'Το Open-Meteo δεν απάντησε. Εμφανίζονται δεδομένα από MET Norway (περιορισμένη προβολή).':'Open-Meteo did not respond. Showing data from MET Norway (limited view).','Χιονόνερο':'Sleet',
+'Προσαρμογή οθόνης':'Customize screen','Αναφορά προβλήματος':'Report a problem','Στατιστικά':'Statistics','Επαναφορά':'Reset','Ξεκίνα':'Get started','Καλώς ήρθες στον Καιρό':'Welcome to Weather',
+'Διάλεξε ποιες ενότητες φαίνονται και με ποια σειρά. Πάτα πάνω σε έναν τίτλο ενότητας για να τη μαζέψεις ή να την ανοίξεις.':'Choose which sections are shown and in what order. Tap a section title to collapse or expand it.','Μετακίνηση πάνω':'Move up','Μετακίνηση κάτω':'Move down',
+'Διάλεξε τοποθεσία πάνω αριστερά και πρόσθεσε αγαπημένες πόλεις.':'Choose a location at the top left and add favorite cities.','Στο ⚙ → Ειδοποιήσεις μπορείς να λαμβάνεις push για επίσημες προειδοποιήσεις και ακραία φαινόμενα. Χρειάζεται η εφαρμογή να είναι προσθεμένη στην αρχική οθόνη.':'In ⚙ → Notifications you can receive push alerts for official warnings and extreme weather. The app must be added to the Home Screen.','Στο ⚙ → Προσαρμογή οθόνης κρύβεις, μετακινείς ή μαζεύεις ενότητες.':'In ⚙ → Customize screen you can hide, move or collapse sections.','Οι προγνώσεις είναι εκτιμήσεις. Σε έκτακτη ανάγκη κάλεσε το':'Forecasts are estimates. In an emergency call',
+'Στείλε μου αυτό το κείμενο. Περιέχει έκδοση, συσκευή, τοποθεσία στρογγυλεμένη στο 0,1° και τεχνικά σφάλματα, όχι κωδικούς.':'Send me this text. It contains the version, device, location rounded to 0.1° and technical errors, not passwords.','Αντιγραφή':'Copy','Αντιγράφηκε ✓':'Copied ✓','Συλλογή στοιχείων…':'Collecting information…',
+'Πρωινή περίληψη':'Morning summary','ώρα αποστολής':'send time','Ώρες ησυχίας':'Quiet hours','ησυχία από':'quiet from','(οι κόκκινες επίσημες προειδοποιήσεις περνούν πάντα)':'(red official warnings always come through)','Ειδοποιήσεις και για τις αγαπημένες πόλεις':'Alerts for favorite cities too','Ιστορικό':'History','Τελευταίες ειδοποιήσεις:':'Latest notifications:','Δεν έχει σταλεί καμία ειδοποίηση ακόμα.':'No notification has been sent yet.',
+'Θερμοκρασία από':'Temperature from','τις επόμενες 24 ώρες· συνολική βροχή':'over the next 24 hours; total rain','UV ανά ώρα· μέγιστο':'UV by hour; maximum',
+'Σαν σήμερα':'On this day','Όλα':'All','Ιστορία':'History','Αθλητικά':'Sports','Τέχνες':'Arts','Τεχνολογία':'Technology','Πολιτισμός':'Culture','Ελληνική':'Greek','Αγγλική':'English','Επιστήμη':'Science','Γεννήσεις':'Births','Θάνατοι':'Deaths','Επέτειοι':'Observances','Γεγονός':'Event','Γέννηση':'Birth','Θάνατος':'Death','Επέτειος':'Observance','Περισσότερα':'More',
+'Δεν υπάρχουν εγγραφές σε αυτή την κατηγορία.':'There are no entries in this category.','Δεν φορτώθηκαν τα «Σαν σήμερα». Δοκίμασε ξανά αργότερα.':'“On this day” could not be loaded. Try again later.',
+'Πηγή:':'Source:','Βικιπαίδεια':'Wikipedia','(ελληνική, CC BY-SA). Η κατηγοριοποίηση γίνεται αυτόματα και μπορεί να έχει λάθη.':'(Greek, CC BY-SA). Categories are assigned automatically and may contain errors.','(αγγλική, CC BY-SA). Τα κείμενα είναι στα αγγλικά. Η κατηγοριοποίηση γίνεται αυτόματα.':'(English, CC BY-SA). Categories are assigned automatically.',
+'Καιρός και επιστήμη':'Weather and science','Κύπρος':'Cyprus','Γλώσσα':'Language','Τέχνη':'Art','Φύση':'Nature','Γεωγραφία':'Geography','ημέρα του έτους:':'day of the year:','Η σημερινή ημέρα διαρκεί':'Today lasts','περισσότερη από χθες.':'longer than yesterday.','λιγότερη από χθες.':'shorter than yesterday.','ίδια με χθες.':'the same as yesterday.','Έλεγχος τώρα':'Check now','ποσότητα ≥':'amount ≥','πιθανότητα ≥':'chance ≥','Βροχή και πλημμύρες':'Rain and floods','mm/ώρα (0.1–100)':'mm/hour (0.1–100)','όριο σκόνης':'dust threshold','Ενεργοποίηση':'Enable','Αποθήκευση':'Save','Δοκιμή':'Test','Απενεργοποίηση':'Disable',
+'Ενεργές. Ο έλεγχος γίνεται από τον server περίπου κάθε 15 λεπτά, ακόμα και με κλειστή εφαρμογή.':'Enabled. The server checks about every 15 minutes, even when the app is closed.','Ανενεργές.':'Disabled.',
+'Ενεργοποιήθηκαν. Πάτα «Δοκιμή» για να δεις αν φτάνει ειδοποίηση.':'Enabled. Tap “Test” to see whether a notification arrives.','Αποθηκεύτηκε.':'Saved.','Απενεργοποιήθηκαν.':'Disabled.',
+'Στάλθηκε δοκιμαστική ειδοποίηση. Αν δεν τη δεις σε μερικά δευτερόλεπτα, έλεγξε τις ρυθμίσεις ειδοποιήσεων του iPhone.':'A test notification was sent. If you do not see it within a few seconds, check the iPhone notification settings.',
+'Ο server ειδοποιήσεων δεν έχει ρυθμιστεί: λείπει η σύνδεση KV στο Cloudflare.':'The notification server is not set up: the KV binding is missing in Cloudflare.','Ο server ειδοποιήσεων δεν βρέθηκε. Ανέβασε την τελευταία έκδοση της εφαρμογής.':'The notification server was not found. Upload the latest version of the app.','Ο server ειδοποιήσεων δεν απάντησε σωστά.':'The notification server did not respond correctly.',
+'Δεν υπάρχει ενεργή συνδρομή. Πάτα «Ενεργοποίηση».':'There is no active subscription. Tap “Enable”.','Διάλεξε πρώτα τοποθεσία.':'Choose a location first.',
+'Οι ειδοποιήσεις δεν επιτράπηκαν. Άνοιξε Ρυθμίσεις iPhone → Ειδοποιήσεις → Καιρός και ενεργοποίησέ τις.':'Notifications were not allowed. Open iPhone Settings → Notifications → Weather and turn them on.',
+'Δεν υποστηρίζεται εδώ. Στο iPhone πρόσθεσε πρώτα την εφαρμογή στην αρχική οθόνη (iOS 16.4 και άνω) και άνοιξέ την από εκεί.':'Not supported here. On iPhone, first add the app to the Home Screen (iOS 16.4 or later) and open it from there.'
+};
+const GRRE=/[Α-Ωα-ωΆ-Ώά-ώϊϋΐΰ]/, GRK='Α-Ωα-ωΆ-Ώά-ώϊϋΐΰ';
+let ENRE=null;
+function trs(s){
+  if(LANG!=='en' || !GRRE.test(s)) return s;
+  if(!ENRE) ENRE=new RegExp('(^|[^'+GRK+'])('+Object.keys(EN).sort((a,b)=>b.length-a.length).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')(?![' +GRK+'])','g');
+  return s.replace(ENRE,(m,p,k)=>p+EN[k]);
+}
+function trNode(n){
+  const sk=/^(SCRIPT|STYLE)$/;
+  if(n.nodeType===3){ if(n.parentNode && (sk.test(n.parentNode.nodeName) || (n.parentNode.closest && n.parentNode.closest('[data-notr]')))) return; const v=trs(n.data); if(v!==n.data) n.data=v; }
+  else if(n.nodeType===1){
+    if(sk.test(n.nodeName) || (n.hasAttribute && n.hasAttribute('data-notr'))) return;
+    ['aria-label','placeholder','title'].forEach(a=>{ if(n.hasAttribute(a)){ const o=n.getAttribute(a), v=trs(o); if(v!==o) n.setAttribute(a,v); } });
+    n.childNodes.forEach(trNode);
+  }
+}
+function initI18n(){
+  document.documentElement.lang=LANG; if(LANG!=='en') return;
+  document.title=trs(document.title); trNode(document.body);
+  new MutationObserver(ms=>{ for(const m of ms){ if(m.type==='characterData') trNode(m.target); else m.addedNodes.forEach(trNode); } }).observe(document.body,{childList:true,subtree:true,characterData:true});
+}
+$('gear').onclick=()=>{ $('s_t').value=U.t; $('s_w').value=U.w; $('s_lang').value=LANG; $('s_fs').value=store.get('fs')||'m'; $('sdlg').showModal(); };
+initI18n();
+
+addEventListener('online',()=>{ if(place) load(true); });
+let ip; addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); ip=e; $('install').hidden=false; });
+$('install').onclick=async()=>{ ip.prompt(); await ip.userChoice; ip=null; $('install').hidden=true; };
+addEventListener('appinstalled',()=>{ $('install').hidden=true; });
+if(place) load(false); else useGeo();
+if('serviceWorker' in navigator){
+  const had=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(had) $('upb').hidden=false; });
+  navigator.serviceWorker.register('sw.js').then(reg=>{ setInterval(()=>reg.update().catch(()=>{}),30*60000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) reg.update().catch(()=>{}); }); }).catch(()=>{});
+}
+</script>
 </body>
 </html>
